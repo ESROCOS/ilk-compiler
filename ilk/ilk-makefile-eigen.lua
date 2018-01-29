@@ -7,7 +7,7 @@
    License: BSD2-clause
 --]]
 
-local utils = require('utils')
+local utils = require('ilk.utils')
 
 local M = {}
 
@@ -17,7 +17,7 @@ CC=g++
 CFLAGS=-I$(path_support)
 @end
 WFLAGS=-Wall -pedantic
-LDFLAGS=-L`pwd`
+LDFLAGS=-Wl,-R,./
 EFLAGS = `pkg-config --cflags eigen3`
 
 LIB=lib$(libname).so
@@ -30,10 +30,10 @@ $(LIB) : $(libname).cpp
 	$(CC) $(WFLAGS) $(EFLAGS) $(CFLAGS) -fPIC -shared -o $@ $^ -lilkeigenbackend
 
 $(execname): $(LIB)
-	$(CC) $(WFLAGS) $(EFLAGS) $(CFLAGS) $(LDFLAGS) -o $(execname) $(libname)_test.cpp -l$(libname)
+	$(CC) $(WFLAGS) $(EFLAGS) $(CFLAGS) $(LDFLAGS) -o $(execname) $(libname)_test.cpp $(LIB)
 
 ##cmp: $(LIB) cmp.cpp
-##	$(CC) $(WFLAGS) $(EFLAGS) -std=c++11 -Wl,-R,./ -o $@ cmp.cpp $(LIB) -liitgenfancy
+##	$(CC) $(WFLAGS) $(EFLAGS) -std=c++11 $(LDFLAGS) -o $@ cmp.cpp $(LIB) -liitgenfancy
 
 clean:
 	rm -f $(execname) $(LIB)

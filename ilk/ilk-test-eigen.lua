@@ -7,7 +7,7 @@
    License: BSD2-clause
 --]]
 
-local utils = require('utils')
+local utils = require('ilk.utils')
 local M = {}
 
 local function test_header_eigen(config,idx)

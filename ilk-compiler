@@ -1,8 +1,8 @@
-#!/usr/bin/env luajit
+#!/usr/bin/env lua
 
-utils = require('utils')
-local ansicolors = require "ansicolors"
-local vlog  = require('vlog')
+utils = require('ilk.utils')
+local ansicolors = require('ilk.ansicolors')
+local vlog  = require('ilk.vlog')
 
 --- helper, print a bright red errormsg
 function errmsg(...)
@@ -567,6 +567,8 @@ if mflag then
   local mgen = makefile_generator({backend=backend})
   mgen(outdir,{libname=output_file, execname=output_file,path_support=nil})
   succmsg('makefile generated!')
+  os.execute('cp '..inputfolder..'/robot-defs.h '..outdir..'/robot-defs.h')
+  succmsg('copying robot definitions')
 end
 
 -- Post-process utility
