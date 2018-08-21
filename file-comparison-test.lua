@@ -18,7 +18,8 @@ local function default_files()
     local files_default = {}
     files_default["ur5.cpp"] = { "" }
     files_default["ur5.h"] = { "" }
-    files_default["ur5_test.cpp"] = { "" }
+    files_default["ur5_fk1_test.cpp"] = { "" }
+    files_default["ur5_fk1_timing.cpp"] = { "" }
     files_default["makefile"] = { "" }
     files_default["robot-defs.h"] = { "" }
     return files_default

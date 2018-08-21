@@ -11,8 +11,8 @@ local extract_model_values = function(args)
     return mvalues, keys_in_order
 end
 
-local initialization_function_signature = function(sname)
-    local signature = "mc_"..sname.."::mc_"..sname.."() {"
+local initialization_function_signature = function(sname, robot_name)
+    local signature = robot_name.."::mc_"..sname.."::mc_"..sname.."() {"
     return signature
 end
 
@@ -33,12 +33,12 @@ $(space)                     $(val.r[7]),$(val.r[8]),$(val.r[9]));
     return res
 end
 
-local function gen_model_cnst(config, args, idx)
+local function gen_model_cnst(config, args, idx, robot_name)
     local fd = config.fd or io.stdout
     local idx = idx or 0
     -- pre-processing: fetching model values
     local mvalues, keys_in_order = extract_model_values(args)
-    local function_signature = initialization_function_signature(args.sname)
+    local function_signature = initialization_function_signature(args.sname, robot_name)
     local ok, res = utils.preproc([[
 
 $(space)$(function_signature)

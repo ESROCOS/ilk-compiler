@@ -13,6 +13,7 @@
 #include <ilk/eigen/ik.h>
 #include "robot-defs.h"
 
+namespace ur5 {
 struct mc_config {
 	mc_config();
 
@@ -24,10 +25,10 @@ struct mc_config {
 	kul::pose_t fr_wr3__fr_wrist_2;
 };
 
-void fk_for_ik1(const mc_config& mc, const ur5::joint_state& input, kul::pose_t& fr_wrist_3__fr_base, ur5::t_J_fr_wrist_3_fr_base& J_fr_wrist_3_fr_base);
-void ik1(const mc_config& mc, const ur5::joint_state& q, const kul::vector3_t &vector, ur5::joint_state& qd_ik);
+void fk_for_ik1(const ur5::mc_config& mc, const ur5::joint_state& input, kul::pose_t& fr_wrist_3__fr_base, ur5::t_J_fr_wrist_3_fr_base& J_fr_wrist_3_fr_base);
+void ik1(const ur5::mc_config& mc, const ur5::joint_state& q, const kul::vector3_t &vector, ur5::joint_state& qd_ik);
 
-    
+}
 
 #endif //! _ILK_GEN_UR5_H_
   

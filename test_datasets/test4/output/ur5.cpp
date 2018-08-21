@@ -1,14 +1,13 @@
 /*
   Source code library generated with ILK-GEN
-  File generated on: Thu Aug  2 21:55:58 2018 (UTC)
+  File generated on: Thu Aug 23 19:56:29 2018 (UTC)
 */
 #include "ur5.h"
 #include <ilk/eigen/gjac.h>
 
 using namespace kul;
-using namespace ur5;
 
-mc_config::mc_config() {
+ur5::mc_config::mc_config() {
 fr_elbow__fr_upper_arm.setIdentity();
 eg_set_position(fr_elbow__fr_upper_arm,0.425,0,-0.1197);
 eg_set_rotation(fr_elbow__fr_upper_arm,1,-0,0,
@@ -47,7 +46,7 @@ eg_set_rotation(fr_wr3__fr_wrist_2,-0,0,1,
 
 }
 
-void fk_for_ik1(const mc_config& mc, const ur5::joint_state& input, kul::pose_t& fr_wrist_3__fr_base, ur5::t_J_fr_wrist_3_fr_base& J_fr_wrist_3_fr_base) {
+void ur5::fk_for_ik1(const ur5::mc_config& mc, const ur5::joint_state& input, kul::pose_t& fr_wrist_3__fr_base, ur5::t_J_fr_wrist_3_fr_base& J_fr_wrist_3_fr_base) {
 	pose_t fr_wrist_3__fr_wr3;
 	pose_t fr_wrist_2__fr_wr2;
 	pose_t fr_wrist_1__fr_wr1;
@@ -112,13 +111,14 @@ void fk_for_ik1(const mc_config& mc, const ur5::joint_state& input, kul::pose_t&
 		J_fr_wrist_3_fr_base.col(5));
 
 }
-void ik1(const mc_config& mc, const ur5::joint_state& q, const kul::vector3_t &vector, ur5::joint_state& qd_ik)
+void ur5::ik1(const ur5::mc_config& mc, const ur5::joint_state& q, const kul::vector3_t &vector, ur5::joint_state& qd_ik)
 {
     pose_t fr_wrist_3__wrt__fr_base;
     Jacobian_t J;
     fk_for_ik1(mc, q, fr_wrist_3__wrt__fr_base, J);
     Matrix<3,6> aux = J.block<3,6>(kul::LX,0);
+
     leastSquaresSolve(aux, vector, qd_ik);
 }
 
-
+    

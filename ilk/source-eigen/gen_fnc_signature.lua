@@ -19,15 +19,21 @@ local function gen_fnc_signature(config, args, idx, robot_name)
 
     local input_type = robot_name..'::'..constants.input_type
     local ending = ' {'
-    if args.is_proto then ending = ';' end
+    local namespace_prefix = robot_name..'::'
+    if args.is_proto then
+        ending = ';'
+        namespace_prefix = ''
+    end
     local ostr = generate_output_signatures(args.olist)
 
     local ok, res = utils.preproc([[
-void $(fnc_name)(const mc_$(sname)& mc, const $(inputtype)& input, $(output))$(ends)
+void $(namespace_prefix)$(fnc_name)(const $(robot_name)::mc_$(sname)& mc, const $(inputtype)& input, $(output))$(ends)
 ]], {
         table = table,
         space = utils.gen_spaces('\t', idx),
         fnc_name = args.fnc_name,
+        namespace_prefix = namespace_prefix,
+        robot_name = robot_name,
         sname = args.sname,
         inputtype = input_type,
         output = ostr,

@@ -13,7 +13,7 @@ local common = require('ilk.common')
 
 local M = {}
 
-local function header_eigen(config, idx)
+local function header_eigen(config, idx, robot_namespace)
     local fd = config.fd or io.stdout
     local idx = idx or 0
     local filename_define = config.filename:upper()
@@ -34,8 +34,10 @@ local function header_eigen(config, idx)
 #include <ilk/eigen/ik.h>
 #include "robot-defs.h"
 
+namespace $(robot_namespace) {
 ]], {
         table = table,
+        robot_namespace = robot_namespace,
         filename = config.filename,
         filename_define = filename_define
     })
@@ -49,7 +51,7 @@ local function header_footer_eigen(config, idx)
     local filename_define = config.filename:upper()
     filename_define = filename_define:gsub("-", "_")
     local ok, res = utils.preproc([[
-    
+}
 
 #endif //! _ILK_GEN_$(filename)_H_
   ]], { table = table, filename = filename_define })

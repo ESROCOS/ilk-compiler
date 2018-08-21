@@ -1,14 +1,13 @@
 /*
   Source code library generated with ILK-GEN
-  File generated on: Thu May 31 22:00:03 2018 (UTC)
+  File generated on: Thu Aug 23 19:52:41 2018 (UTC)
 */
 #include "ur5.h"
 #include <ilk/eigen/gjac.h>
 
 using namespace kul;
-using namespace ur5;
 
-mc_config::mc_config() {
+ur5::mc_config::mc_config() {
 camera__fr_link2.setIdentity();
 eg_set_position(camera__fr_link2,0.1,0.2,0.3);
 eg_set_rotation(camera__fr_link2,-0,-1,0,
@@ -35,7 +34,7 @@ eg_set_rotation(fr_link3__fr_jD,1,0,0,
 
 }
 
-void fk1(const mc_config& mc, const ur5::joint_state& input, kul::pose_t& fr_link1__fr_link3, kul::pose_t& fr_jA__fr_link4, kul::pose_t& fr_jA__fr_jC) {
+void ur5::fk1(const ur5::mc_config& mc, const ur5::joint_state& input, kul::pose_t& fr_link1__fr_link3, kul::pose_t& fr_jA__fr_link4, kul::pose_t& fr_jA__fr_jC) {
 	pose_t fr_jB__fr_link2;
 	pose_t fr_jC__fr_link3;
 	pose_t fr_jA__fr_link1;

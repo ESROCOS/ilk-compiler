@@ -1,0 +1,10 @@
+return {
+        solverid = 'ik1',
+        solver_type = 'inverse',
+        robot_name = 'ur5',
+        { op='ik', kind='vel',
+         vectors='linear',
+         target='fr_wrist_3',
+         reference='fr_base',
+         fk='fk__ik1' }
+}

@@ -1,0 +1,29 @@
+
+return {
+    solverid = 'fk2',
+    solver_type = 'forward',
+    robot_name = 'ur5',
+
+    -- Constant poses (from the model)
+    { op='model_const', args={ 'fr_elbow__fr_upper_arm','fr_shoulder_lift__fr_shoulder','fr_shoulder_pan__fr_base'} },
+
+    -- Joint-frame poses (from the model)
+    { op='model_T_joint_local', name='fr_forearm__fr_elbow', jtype='revolute', dir='a_x_b', input=2 },
+    { op='model_T_joint_local', name='fr_upper_arm__fr_shoulder_lift', jtype='revolute', dir='a_x_b', input=1 },
+    { op='model_T_joint_local', name='fr_shoulder__fr_shoulder_pan', jtype='revolute', dir='a_x_b', input=0 }
+,
+    { op='compose', args={ 'fr_forearm__fr_elbow', 'fr_elbow__fr_upper_arm', 'fr_forearm__fr_upper_arm' } },
+    { op='compose', args={ 'fr_forearm__fr_upper_arm', 'fr_upper_arm__fr_shoulder_lift', 'fr_forearm__fr_shoulder_lift' } },
+    { op='compose', args={ 'fr_forearm__fr_shoulder_lift', 'fr_shoulder_lift__fr_shoulder', 'fr_forearm__fr_shoulder' } },
+    { op='compose', args={ 'fr_forearm__fr_shoulder', 'fr_shoulder__fr_shoulder_pan', 'fr_forearm__fr_shoulder_pan' } },
+    { op='compose', args={ 'fr_forearm__fr_shoulder_pan', 'fr_shoulder_pan__fr_base', 'fr_forearm__fr_base' } }
+,
+    -- Output poses (user's request)
+    { op='output', otype='pose', target='fr_forearm__fr_base' }
+
+    -- Jacobians "declarations" for subsequent reference (user's request)
+
+    -- Jacobians algorithm
+
+    -- Output Jacobians (user's request)
+}

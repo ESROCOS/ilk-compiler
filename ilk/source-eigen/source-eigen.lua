@@ -24,7 +24,6 @@ local function header(config, args, idx, robot_namespace)
 #include <ilk/eigen/gjac.h>
 
 using namespace $(backend_namespace);
-using namespace $(robot_namespace);
 
 ]], {
         table = table,

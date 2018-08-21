@@ -9,7 +9,7 @@ local generate_rotation_name = function(ik)
     return ik.reference..'__R__'..ik.target
 end
 
-local gen_ik_velocity_computations = function(config, args, idx)
+local gen_ik_velocity_computations = function(config, args, idx, robot_name)
     local fd = config.fd or io.stdout
     local idx = idx or 0
     local ik = args.ik
@@ -18,20 +18,23 @@ local gen_ik_velocity_computations = function(config, args, idx)
     local aux_arg = ''
     local ls_first_arg = 'J'
     local temp_name = generate_pose_name(ik)
+    local desired_type = constants.twist_type
     if ik.vectors == keywords.op_argument.inverse_kinematics.vector.linear then
         use_aux = true
         aux_arg = constants.ik_aux_argument.linear
         ls_first_arg = 'aux'
+        desired_type = constants.velocity_linear_type
     elseif ik.vectors == keywords.op_argument.inverse_kinematics.vector.angular then
         use_aux = true
         aux_arg = constants.ik_aux_argument.angular
         ls_first_arg = 'aux'
+        desired_type = constants.velocity_angular_type
     end
     local input_type = args.robot_name..'::'..constants.input_type
 
     local ok, res = utils.preproc([[
 
-$(space)void $(solver_id)(const mc_config& mc, const $(input_type)& q, const $(constants.backend_namespace)::vector3_t &vector, $(input_type)& qd_ik)
+$(space)void $(robot_name)::$(solver_id)(const $(robot_name)::mc_config& mc, const $(input_type)& q, const $(constants.backend_namespace)::$(desired_type) &vector, $(input_type)& qd_ik)
 $(space){
 $(space)    $(constants.pose_type) $(temp_name);
 $(space)    $(constants.jacobian_type) J;
@@ -39,6 +42,7 @@ $(space)    $(fk_solver)(mc, q, $(temp_name), J);
 @if use_aux then
 $(space)    Matrix<3,6> aux = J.block<3,6>($(constants.backend_namespace)::$(aux_arg),0);
 @end
+$(space)
 $(space)    leastSquaresSolve($(ls_first_arg), vector, qd_ik);
 $(space)}
 
@@ -46,6 +50,7 @@ $(space)}
         table = table,
         pairs = pairs,
         ik = ik,
+        desired_type = desired_type,
         constants = constants,
         solver_id = args.solver_id,
         fk_solver = ik.fk,
@@ -55,13 +60,14 @@ $(space)}
         temp_name = temp_name,
         space = utils.gen_spaces('\t', idx),
         input_type = input_type,
-        identifiers = identifiers
+        identifiers = identifiers,
+        robot_name = robot_name
     })
     if not ok then error(res) end
     fd:write(res)
 end
 
-local gen_ik_position_computations = function(config, args, idx)
+local gen_ik_position_computations = function(config, args, idx, robot_name)
     local fd = config.fd or io.stdout
     local idx = idx or 0
     local ik = args.ik
@@ -71,50 +77,58 @@ local gen_ik_position_computations = function(config, args, idx)
     local rot_temp_name = generate_rotation_name(ik)
     local compute_pos = false
     local compute_or = false
+    local while_conditions = ''
     if ik.vectors == keywords.op_argument.inverse_kinematics.vector.linear then
         compute_pos = true
+        while_conditions = '(ep > cfg.eps_pos_err_norm)'
     elseif ik.vectors == keywords.op_argument.inverse_kinematics.vector.angular then
         compute_or = true
+        while_conditions = '(eo > cfg.eps_or_err_norm)'
     elseif ik.vectors == keywords.op_argument.inverse_kinematics.vector.pose then
         compute_pos = true
         compute_or = true
+        while_conditions = '(ep > cfg.eps_pos_err_norm || eo > cfg.eps_or_err_norm)'
     end
     local input_type = args.robot_name..'::'..constants.input_type
 
     local ok, res = utils.preproc([[
 
-$(space)void $(solver_id)(const mc_config& mc, const $(constants.backend_namespace)::ik_pos_cfg& cfg,
+$(space)void $(robot_name)::$(solver_id)(const $(robot_name)::mc_config& mc, const $(constants.backend_namespace)::ik_pos_cfg& cfg,
 @if compute_pos == true then
-$(space)            const $(constants.backend_namespace)::vector3_t& desired_position,
+$(space)            const $(constants.backend_namespace)::$(constants.position_type)& desired_position,
 @end
 @if compute_or == true then
-$(space)            const $(constants.backend_namespace)::rot_m_t& desired_orientation,
+$(space)            const $(constants.backend_namespace)::$(constants.orientation_type)& desired_orientation,
 @end
 $(space)            const $(input_type)& q_guess,
 $(space)            $(input_type)& q_ik, $(constants.backend_namespace)::ik_pos_dbg &dbg)
 $(space){
 $(space)    using namespace std;
 @if compute_pos == true then
-$(space)    vector3_t ee_err_pos;
+$(space)    $(constants.position_type) ee_err_pos;
 @end
 @if compute_or == true then
-$(space)    AxisAngle ee_err_or;
+$(space)    $(constants.axis_angle_type) ee_err_or;
 @end
 $(space)
-$(space)    twist_t ik_twist(twist_t::Zero());
+$(space)    $(constants.twist_type) ik_twist($(constants.twist_type)::Zero());
 $(space)    $(constants.jacobian_type) J;
 $(space)    $(constants.pose_type) $(pos_temp_name);
 $(space)    $(constants.input_type) qd;
 $(space)    q_ik = q_guess;
+@if compute_pos == true then
 $(space)    double ep = cfg.eps_pos_err_norm*10;
+@end
+@if compute_or == true then
 $(space)    double eo = cfg.eps_or_err_norm*10;
+@end
 $(space)
 $(space)    dbg.iter_count = 0;
 @if compute_or == true then
 $(space)    Matrix<3,3> $(rot_temp_name);
 @end
 $(space)
-$(space)    while( (ep > cfg.eps_pos_err_norm || eo > cfg.eps_or_err_norm) && dbg.iter_count < cfg.max_iter)
+$(space)    while( $(while_conditions) && dbg.iter_count < cfg.max_iter)
 $(space)    {
 $(space)        $(fk_solver)(mc, q_ik, $(pos_temp_name), J);
 @if compute_or == true then
@@ -150,6 +164,7 @@ $(space)}
         table = table,
         pairs = pairs,
         ik = ik,
+        while_conditions = while_conditions,
         constants = constants,
         solver_id = args.solver_id,
         fk_solver = ik.fk,
@@ -162,13 +177,21 @@ $(space)}
         ls_first_arg = ls_first_arg,
         space = utils.gen_spaces('\t', idx),
         identifiers = identifiers,
-        input_type = input_type
+        input_type = input_type,
+        robot_name = robot_name
     })
     if not ok then error(res) end
     fd:write(res)
+
+    local description = {}
+    description.pos_temp_name = pos_temp_name
+    description.rot_temp_name = rot_temp_name
+    description.compute_pos = compute_pos
+    description.compute_or = compute_or
+    return description
 end
 
-local gen_ik_velocity_headers = function(config, args, idx)
+local gen_ik_velocity_headers = function(config, args, idx, robot_name)
     local fd = config.fd or io.stdout
     local idx = idx or 0
     local ik = args.ik
@@ -176,26 +199,30 @@ local gen_ik_velocity_headers = function(config, args, idx)
     local use_aux = false
     local aux_arg = ''
     local ls_first_arg = 'J'
+    local desired_type = constants.twist_type
     if ik.vectors == keywords.op_argument.inverse_kinematics.vector.linear then
         use_aux = true
         aux_arg = constants.ik_aux_argument.linear
         ls_first_arg = 'aux'
+        desired_type = constants.velocity_linear_type
     elseif ik.vectors == keywords.op_argument.inverse_kinematics.vector.angular then
         use_aux = true
         aux_arg = constants.ik_aux_argument.angular
         ls_first_arg = 'aux'
+        desired_type = constants.velocity_angular_type
     end
 
     local input_type = args.robot_name..'::'..constants.input_type
 
     local ok, res = utils.preproc([[
 
-$(space)void $(solver_id)(const mc_config& mc, const $(input_type)& q, const $(constants.backend_namespace)::vector3_t &vector, $(input_type)& qd_ik);
+$(space)void $(solver_id)(const $(robot_name)::mc_config& mc, const $(input_type)& q, const $(constants.backend_namespace)::$(desired_type) &vector, $(input_type)& qd_ik);
 
 ]], {
         table = table,
         pairs = pairs,
         ik = ik,
+        desired_type = desired_type,
         constants = constants,
         solver_id = args.solver_id,
         fk_solver = ik.fk,
@@ -204,13 +231,14 @@ $(space)void $(solver_id)(const mc_config& mc, const $(input_type)& q, const $(c
         ls_first_arg = ls_first_arg,
         space = utils.gen_spaces('\t', idx),
         identifiers = identifiers,
-        input_type = input_type
+        input_type = input_type,
+        robot_name = robot_name
     })
     if not ok then error(res) end
     fd:write(res)
 end
 
-local gen_ik_position_headers = function(config, args, idx)
+local gen_ik_position_headers = function(config, args, idx, robot_name)
     local fd = config.fd or io.stdout
     local idx = idx or 0
     local ik = args.ik
@@ -230,12 +258,12 @@ local gen_ik_position_headers = function(config, args, idx)
 
     local ok, res = utils.preproc([[
 
-$(space)void $(solver_id)(const mc_config& mc, const $(constants.backend_namespace)::ik_pos_cfg& cfg,
+$(space)void $(solver_id)(const $(robot_name)::mc_config& mc, const $(constants.backend_namespace)::ik_pos_cfg& cfg,
 @if compute_pos == true then
-$(space)            const $(constants.backend_namespace)::vector3_t& desired_position,
+$(space)            const $(constants.backend_namespace)::$(constants.position_type)& desired_position,
 @end
 @if compute_or == true then
-$(space)            const $(constants.backend_namespace)::rot_m_t& desired_orientation,
+$(space)            const $(constants.backend_namespace)::$(constants.orientation_type)& desired_orientation,
 @end
 $(space)            const $(input_type)& q_guess,
 $(space)            $(input_type)& q_ik, $(constants.backend_namespace)::ik_pos_dbg &dbg);
@@ -254,7 +282,8 @@ $(space)            $(input_type)& q_ik, $(constants.backend_namespace)::ik_pos_
         ls_first_arg = ls_first_arg,
         space = utils.gen_spaces('\t', idx),
         identifiers = identifiers,
-        input_type = input_type
+        input_type = input_type,
+        robot_name = robot_name
     })
     if not ok then error(res) end
     fd:write(res)

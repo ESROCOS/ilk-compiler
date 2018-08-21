@@ -26,6 +26,16 @@ struct mc_config {
 };
 
 void fk1(const ur5::mc_config& mc, const ur5::joint_state& input, kul::pose_t& fr_wrist_3__fr_base, ur5::t_J_fr_wrist_3_fr_base& J_fr_wrist_3_fr_base, ur5::t_J_fr_wrist_3_fr_elbow& J_fr_wrist_3_fr_elbow);
+void fk2(const ur5::mc_config& mc, const ur5::joint_state& input, kul::pose_t& fr_forearm__fr_base);
+void fk__ik1(const ur5::mc_config& mc, const ur5::joint_state& input, kul::pose_t& fr_wrist_3__fr_base, ur5::t_J_fr_wrist_3_fr_base& J_fr_wrist_3_fr_base);
+void ik1(const ur5::mc_config& mc, const ur5::joint_state& q, const kul::vector3_t &vector, ur5::joint_state& qd_ik);
+
+void ik2(const ur5::mc_config& mc, const kul::ik_pos_cfg& cfg,
+            const kul::vector3_t& desired_position,
+            const kul::rot_m_t& desired_orientation,
+            const ur5::joint_state& q_guess,
+            ur5::joint_state& q_ik, kul::ik_pos_dbg &dbg);
+
 }
 
 #endif //! _ILK_GEN_UR5_H_

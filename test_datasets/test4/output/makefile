@@ -2,19 +2,39 @@ CC=g++
 LDFLAGS=-Wl,-R,./
 
 eigen_cflags:= ${shell pkg-config --cflags eigen3}
-CFLAGS=-Wall -pedantic -std=c++11 ${eigen_cflags} -O2 -DEIGEN_NO_DEBUG
+    CFLAGS=-Wall -pedantic -std=c++11 ${eigen_cflags} -O2 -DEIGEN_NO_DEBUG
+CFLAGS_DBG=-Wall -pedantic -std=c++11 ${eigen_cflags} -O0 -g -ftest-coverage -fprofile-arcs
+
 
 LIB=libur5.so
 
 .PHONY: clean
 
-all: ur5 $(LIB)
+all: $(LIB)
 
 $(LIB) : ur5.cpp
 	$(CC) $(CFLAGS) -fPIC -shared -o $@ $^ -lilkeigenbackend
 
-ur5: $(LIB)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o ur5 ur5_test.cpp $(LIB)
+tests :  ur5_fk_for_ik1_test ur5_fk_for_ik1_timing ur5_ik1_test ur5_ik1_timing
+tests_dbg :  ur5_fk_for_ik1_test_dbg ur5_fk_for_ik1_timing_dbg ur5_ik1_test_dbg ur5_ik1_timing_dbg
+
+ur5_fk_for_ik1_test : ur5_fk_for_ik1_test.cpp $(LIB)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIB) -lilkeigenbackend
+ur5_fk_for_ik1_timing : ur5_fk_for_ik1_timing.cpp $(LIB)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIB) -lilkeigenbackend
+ur5_ik1_test : ur5_ik1_test.cpp $(LIB)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIB) -lilkeigenbackend
+ur5_ik1_timing : ur5_ik1_timing.cpp $(LIB)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIB) -lilkeigenbackend
+
+ur5_fk_for_ik1_test_dbg : ur5_fk_for_ik1_test.cpp ur5.cpp
+	$(CC) $(CFLAGS_DBG) -o $@ $^ -lilkeigenbackend
+ur5_fk_for_ik1_timing_dbg : ur5_fk_for_ik1_timing.cpp ur5.cpp
+	$(CC) $(CFLAGS_DBG) -o $@ $^ -lilkeigenbackend
+ur5_ik1_test_dbg : ur5_ik1_test.cpp ur5.cpp
+	$(CC) $(CFLAGS_DBG) -o $@ $^ -lilkeigenbackend
+ur5_ik1_timing_dbg : ur5_ik1_timing.cpp ur5.cpp
+	$(CC) $(CFLAGS_DBG) -o $@ $^ -lilkeigenbackend
 
 clean:
-	rm -f ur5 $(LIB)
+	rm -f $(LIB)
