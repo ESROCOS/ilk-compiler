@@ -6,23 +6,38 @@ This is the readme file of the ILK-Compiler tool.
 
 A valid `Lua` interpreter (`Lua5.2` -- suggested, `Lua5.3` or `Luajit`),
 and the `luarocks` tool are required. Please install them from your package
-manager (or from sources). For example:
+manager (or from sources). For example, you could follow this procedure
+(tested on Ubuntu 16.04 - requires `wget`, `unzip`, `tar`, `make`, `git`):
 
-```
-sudo apt-get install lua5.2 luarocks liblua5.2-dev
-```
 
-### Lua modules
+1. Install Lua 5.2 and liblua5.2-dev (**NOTE**: getting luarocks using
+   `apt-get install` results in an incompatible installation on Ubuntu 16.04 as
+   of 14 Jun 2018)
 
-This software depends on a short number of Lua modules,
-which can be easily installed manually or through the `luarocks` tools.
+     ```sudo apt-get install lua5.2 liblua5.2-dev```
 
-The required rocks are:
+2. Download and install luarocks
+    - download from `https://luarocks.org/` or using `wget`:
 
-  * [`luafilesystem`](<http://keplerproject.github.io/luafilesystem/): for file
-    manipulation on your filesystem;  
+        ```wget http://luarocks.github.io/luarocks/releases/luarocks-2.4.4.tar.gz```
+    - unpack the source archive:
+
+        `tar zxvf luarocks-2.4.4.tar.gz`
+    - build it:
+
+        ```
+        cd luarocks-2.4.4/
+        ./configure --lua-version=5.2
+        make build
+        sudo make install
+        cd ..
+        ```
+
+3. Install Lua dependencies using luarocks:
+
     ```
-    sudo luarocks install luafilesystem
+    cd etc
+    luarocks install --local lua-deps-1.0-1.rockspec
     ```
 
 
@@ -79,4 +94,3 @@ sudo make install
 
 ## Building
 Finally, you can compile the generated code simply with `make`.
-

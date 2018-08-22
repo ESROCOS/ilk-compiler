@@ -11,7 +11,7 @@ Th(t) := matrix([1,0,0,t[1]], [0,1,0,t[2]], [0,0,1,t[3]],[0,0,0,1]);
 
 #include "joint-transforms.h"
 
-void rot_z__a_x_b(double arg, hom_t_t& out)
+void kul::rot_z__a_x_b(double arg, hom_t_t& out)
 {
     out.setIdentity();
     double s = std::sin(arg);
@@ -23,7 +23,7 @@ void rot_z__a_x_b(double arg, hom_t_t& out)
     out(1,1) = c;
 }
 
-void rot_z__b_x_a(double arg, hom_t_t& out)
+void kul::rot_z__b_x_a(double arg, hom_t_t& out)
 {
     out.setIdentity();
     double s = std::sin(arg);
@@ -35,13 +35,13 @@ void rot_z__b_x_a(double arg, hom_t_t& out)
     out(1,1) = c;
 }
 
-void tr_z__a_x_b(double arg, hom_t_t& out)
+void kul::tr_z__a_x_b(double arg, hom_t_t& out)
 {
     out.setIdentity();
     out(2,3) = arg;
 }
 
-void tr_z__b_x_a(double arg, hom_t_t& out)
+void kul::tr_z__b_x_a(double arg, hom_t_t& out)
 {
     out.setIdentity();
     out(2,3) = -arg;

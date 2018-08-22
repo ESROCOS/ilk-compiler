@@ -16,9 +16,15 @@ include_directories(${EIGEN3_INCLUDE_DIRS})
 set(HEADERS
   ./core-types.h
   ./joint-transforms.h
+  ./gjac.h
+  ./rots.h
+  ./ik.h
+  ./misc.h
+  ./test-utils.h
 )
 set(SOURCES
   ./joint-transforms.cpp
+  ./test-utils.cpp
 )
 
 #
@@ -28,3 +34,5 @@ set(LIB_NAME ilkeigenbackend)
 add_library(${LIB_NAME} SHARED ${SOURCES})
 install(FILES   ${HEADERS} DESTINATION ${HEADER_INSTALL_ROOT}/ilk/eigen)
 install(TARGETS ${LIB_NAME} LIBRARY DESTINATION ${LIB_INSTALL_ROOT})
+
+add_executable(test1   test1.cpp)

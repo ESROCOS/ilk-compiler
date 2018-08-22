@@ -17,5 +17,6 @@ return {
     { op='compose', args={ 'fr_jA__fr_link1', 'fr_link1__fr_jC', 'fr_jA__fr_jC' } }
 ,    { op='output', otype='pose', target='fr_link1__fr_link3' },
     { op='output', otype='pose', target='fr_jA__fr_link4' },
-    { op='output', otype='pose', target='fr_jA__fr_jC' }
+    { op='output', otype='pose', target='fr_jA__fr_jC' },
+    { op='output', otype='pose', target='camera__fr_link2'}
 }
