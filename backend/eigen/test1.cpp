@@ -22,7 +22,7 @@ void testOrientationError()
 	vector3_t axis;
 	axis.setRandom();
 	axis = axis / axis.norm();
-	double theta = 0;//static_cast<double>(std::rand())/RAND_MAX * M_PI;
+	double theta = static_cast<double>(std::rand())/RAND_MAX * M_PI;
 
 	// Now convert the axis/angle to rotation matrix
 	double c = cos(theta);
@@ -40,7 +40,7 @@ void testOrientationError()
 	// The orientation difference between the Identity and R
 	// should be exactly the axis/angle we used in the first place
 	rot_m_t I = rot_m_t::Identity();
-	AxisAngle res = orientationDistance(I, I);
+	AxisAngle res = orientationDistance(R, I);
 
 	cout << "Actual axis: " << axis.transpose() << endl;
 	cout << "Found axis : " << res.axis.transpose() << endl;
