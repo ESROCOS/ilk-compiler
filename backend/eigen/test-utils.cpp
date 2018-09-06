@@ -20,3 +20,22 @@ void kul::TextDataset::readLine()
     reader.str(line);
     reader.seekg(std::ios_base::beg);
 }
+
+
+void kul::NaiveBinDataset::readPose(kul::pose_t& pose)
+{
+    readBuff(12);
+    pose.setIdentity();
+    auto R = kul::eg_get_rotation(pose);
+    auto p = kul::eg_get_position(pose);
+    p(0) = buf[0];
+    p(1) = buf[1];
+    p(2) = buf[2];
+
+    // expect the rotation matrix elements in row-major order, in the buffer
+    for(int r=0;r<3;r++) {
+        for(int c=0;c<3;c++) {
+            R(r,c) = buf[3 + r*3 + c];
+        }
+    }
+}
