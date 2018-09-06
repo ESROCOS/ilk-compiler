@@ -118,6 +118,7 @@ function makefile_generator(config)
 end
 
 
+
 function create_test_filename(fn, solver_id)
     local test_filename = fn .. '_' .. solver_id .. '_test'
     return test_filename
@@ -409,6 +410,22 @@ if mflag then
     os.execute('cp ' .. inputfolder .. '/robot-defs.h ' .. outdir .. '/robot-defs.h')
     if not silent then
         helpers.succmsg('copying robot definitions')
+    end
+
+    -- CMake file generation
+    local cmakegen = require('ilk.eigen').cmake.generator
+    local fd = io.open(path .. '/CMakeLists.txt', 'w')
+    local text = cmakegen(
+        { robot       = robot_name,
+          libname     = robot_name .. 'kingen',
+          files       = { libsource=output_file, libheader=output_file, defsheader='robot-defs', test=testfiles},
+          includePath = 'kingen/' .. robot_name
+        } )
+    fd:write(text)
+    fd:close()
+    if not silent then
+        -- TODO check for errors..
+        helpers.succmsg('CMake file generated!')
     end
 end
 

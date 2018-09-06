@@ -9,8 +9,9 @@
 local M = {
     source = require('ilk.source-eigen.source-eigen'),
     header = require('ilk.source-eigen.header-eigen'),
-    test = require('ilk.source-eigen.test-eigen'),
-    make = require('ilk.source-eigen.makefile-eigen'),
+    test   = require('ilk.source-eigen.test-eigen'),
+    make   = require('ilk.source-eigen.makefile-eigen'),
+    cmake  = require('ilk.source-eigen.cmake')
 }
 
 return M
