@@ -361,7 +361,10 @@ end
 local program = {}
 local robot_name = ""
 for i,ilk in pairs(ilk_files) do
-    local chunk1 = loadfile(inputfolder .. ilk)
+    local chunk1, errmsg = loadfile(inputfolder .. ilk)
+    if(chunk1==nil) then
+      error(errmsg)
+    end
     local prog = chunk1()
     program[#program+1] = prog
     robot_name = prog.robot_name
