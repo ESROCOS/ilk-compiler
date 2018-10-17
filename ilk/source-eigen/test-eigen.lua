@@ -186,7 +186,7 @@ $(time_delta_variables_declaration)
 	        // Call IK for position
 	        $(constants.backend_namespace)::ik_pos_cfg cfg;
 	        $(constants.backend_namespace)::ik_pos_dbg dbg;
-	        cfg.max_iter = 500;
+	        cfg.max_iter = 1;
 	        cfg.eps_or_err_norm = 1e-3;
 	        cfg.ls_damping = 0.08;
 	        $(solver_call)

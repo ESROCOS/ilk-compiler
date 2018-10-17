@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 	        // Call IK for position
 	        kul::ik_pos_cfg cfg;
 	        kul::ik_pos_dbg dbg;
-	        cfg.max_iter = 500;
+	        cfg.max_iter = 1;
 	        cfg.eps_or_err_norm = 1e-3;
 	        cfg.ls_damping = 0.08;
 	        ik2(kk, cfg, desp, deso, q_guess, q_ik, dbg);
