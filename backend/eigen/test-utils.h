@@ -90,6 +90,7 @@ public:
 private:
     void readBuff(unsigned short howmany) {
         source.read(reinterpret_cast<char*>(buf), howmany*sizeof(float));
+        source.peek(); // make sure to trigger EOF now, if there are no more chars
     }
 
     float buf[64];

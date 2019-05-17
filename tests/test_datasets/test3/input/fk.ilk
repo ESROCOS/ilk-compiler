@@ -1,0 +1,34 @@
+
+return {
+    solverid = 'fk1',
+    solver_type = 'forward',
+    robot_name = 'ur5',
+
+    -- Model poses
+    poses = {
+        constant = {fr_link1__fr_jB={},fr_link2__fr_jC={},fr_link3__fr_jD={},camera__fr_link2={}},
+        joint = {
+            fr_jB__fr_link2 = { jtype='prismatic', dir='b_x_a', input=1 },
+            fr_jC__fr_link3 = { jtype='revolute', dir='b_x_a', input=2 },
+            fr_jA__fr_link1 = { jtype='revolute', dir='b_x_a', input=0 },
+            fr_jD__fr_link4 = { jtype='prismatic', dir='b_x_a', input=3 }
+        }
+    },
+    ops = {
+        { op='pose-compose', arg1='fr_link1__fr_jB', arg2='fr_jB__fr_link2', res='fr_jB__fr_link2' },
+        { op='pose-compose', arg1='fr_link2__fr_jC', arg2='fr_jC__fr_link3', res='fr_link2__fr_link3' },
+        { op='pose-compose', arg1='fr_link3__fr_jD', arg2='fr_jD__fr_link4', res='fr_link3__fr_link4' },
+        { op='pose-compose', arg1='fr_link1__fr_link2', arg2='fr_link2__fr_link3', res='fr_link1__fr_link3' },
+        { op='pose-compose', arg1='fr_link1__fr_link3', arg2='fr_link3__fr_link4', res='fr_link1__fr_link4' },
+        { op='pose-compose', arg1='fr_jA__fr_link1', arg2='fr_link1__fr_link4', res='fr_jA__fr_link4' },
+        { op='pose-compose', arg1='fr_link1__fr_link2', arg2='fr_link2__fr_jC', res='fr_link1__fr_jC' },
+        { op='pose-compose', arg1='fr_jA__fr_link1', arg2='fr_link1__fr_jC', res='fr_jA__fr_jC' },
+    },
+
+    -- Outputs (user's request)
+    outputs = {
+        fr_link1__fr_link3 = {otype='pose',usersort=1},
+        fr_jA__fr_link4 = {otype='pose', usersort=2},
+        fr_jA__fr_jC = {otype='pose', usersort=3},
+    }
+}

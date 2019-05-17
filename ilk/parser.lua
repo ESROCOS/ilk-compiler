@@ -1,109 +1,134 @@
-local constants = require('ilk.constants')
+-- Some of the keys of the Lua-hosted ILK models. These keys shall not be
+-- visible outside this parser, which is the responsible for parsing the inputs
+-- and create the internal representation of the models.
+local keys = {
+    robot_name = "robot_name",
+    joint_space = "joint_space_size",
+    solver_type= "solver_type",
+    solver_id  = "solverid",
+    imperativeBlock='ops',
+    poses='poses',
+    joint_velocities = 'joint_velocities',
+    outputs='outputs',
+    ik = {
+      kind = {velocity = 'vel', position = 'pos' },
+      cfgSpace = {lin='linear', ang='angular', pose='pose'},
+      fkSolver = "fk"
+    }
+}
 
-local extract_forward_operations = function(program)
-    local m_joint_local = {}
-    local compose = {}
-    local model_const = {}
-    local outputs = {}
-    local jacobians = {}
-    local jacobian_computes = {}
-    local solver_id = program[ilk_keywords.configuration.solver_id]
-    local robot_name = program[ilk_keywords.configuration.robot_name]
-    local identifiers = {}
+local M = {}
 
-    for i, v in pairs(program) do
-        if v.op == ilk_keywords.op.joint_local then
-            m_joint_local[#m_joint_local + 1] = v
-            identifiers[v.name] = v.name
-        elseif v.op == ilk_keywords.op.compose then --be aware, they are ordered
-            compose[#compose + 1] = v.args
-            identifiers[v.args[3]] = v.args[3]
-        elseif v.op == ilk_keywords.op.output then
-            outputs[#outputs + 1] = v
-            identifiers[v.target] = v.target
-        elseif v.op == ilk_keywords.op.model_constant then
-            model_const = v.args
-            for j, w in pairs(v.args) do
-                identifiers[w] = constants.const_prefix.."."..w
-            end
-        elseif v.op == ilk_keywords.op.jacobian_poi then
-            jacobians[#jacobians + 1] = v
-            identifiers[v.name] = v.name
-        elseif v.op == ilk_keywords.op.jacobian_compute then
-            jacobian_computes[#jacobian_computes + 1] = v
-        end
+
+local get_metainfo = function(program)
+  local ilkSolverType = program[keys.solver_type]
+  local solverKind = ilkSolverType
+  local specs = {}
+  local outputs = nil
+
+  if ilkSolverType == "forward" then
+    solverKind = M.keys.solverKind.fk
+    outputs    = program[keys.outputs]
+  elseif ilkSolverType == "inverse" then
+    if program.kind == keys.ik.kind.velocity then
+      solverKind = M.keys.solverKind.ik.velocity
+    elseif program.kind == keys.ik.kind.position then
+       solverKind = M.keys.solverKind.ik.position
     end
-
-    local ops = {}
-    ops.m_joint_local = m_joint_local
-    ops.compose = compose
-    ops.model_const = model_const
-    ops.outputs = outputs
-    ops.jacobians = jacobians
-    ops.j_computes = jacobian_computes
-    ops.solver_id = solver_id
-    ops.robot_name = robot_name
-    ops.identifiers = identifiers
-    ops.type = ilk_keywords.solver_type.forward
-    return ops
-end
-
-
-local extract_inverse_operations = function(program)
-    local solver_id = program[ilk_keywords.configuration.solver_id]
-    local robot_name = program[ilk_keywords.configuration.robot_name]
-    local identifiers = {}
-    local ik = {}
-    for i, v in pairs(program) do
-        if v.op == ilk_keywords.op.inverse_kinematics then
-            ik = v
-            identifiers[v.target] = v.target
-            identifiers[v.reference] = v.reference
-        end
+    local space = program.vectors
+    if space == keys.ik.cfgSpace.lin then
+      specs.configSpace = "location"
+    elseif space ==  keys.ik.cfgSpace.ang then
+      specs.configSpace = "orientation"
+    elseif space ==  keys.ik.cfgSpace.pose then
+      specs.configSpace = "pose"
+    else
+      error("Unknown config-space spec: '"..space.."'. In solver "..program[keys.solver_id])
     end
+    specs.fkSolverID = program[ keys.ik.fkSolver ]
+    outputs = {}
+    outputs["q_ik"] = {
+      usersort = 1,
+      otype = "jointState"
+    }
+  end
 
-    local ops = {}
-    ops.solver_id = solver_id
-    ops.robot_name = robot_name
-    ops.identifiers = identifiers
-    ops.ik = ik
-    ops.outputs = {}
-    ops.type = ilk_keywords.solver_type.inverse
-    return ops
+  return {
+    robot_name = program[keys.robot_name],
+    joint_space_size = program[keys.joint_space] or 6,
+    solver_type= solverKind,
+    solver_specs=specs,
+    solver_id  = program[keys.solver_id],
+    outputs    = outputs
+  }
 end
 
 
-local extract_operations = function(program)
-    local solver_type = program[ilk_keywords.configuration.solver_type]
-    if (solver_type == ilk_keywords.solver_type.inverse) then
-        local ops = extract_inverse_operations(program)
-        return ops
-    elseif (solver_type == ilk_keywords.solver_type.forward) then
-        local ops = extract_forward_operations(program)
-        return ops
+
+
+
+M.parse = function(ilk_program)
+  local ret = {}
+  ret.meta = get_metainfo(ilk_program)
+  ret.ops = ilk_program[keys.imperativeBlock]
+
+  local ilkposes = ilk_program[keys.poses]
+  if ilkposes ~= nil then
+    ret.model_poses = { constant=ilkposes.constant, joint={} }
+    for k,v in pairs(ilkposes.joint) do
+      ret.model_poses.joint[k] = { jtype=v.jtype, dir=v.dir, coordinate=v.input}
     end
-end
+  end
 
-
-local generate_output_type_name_pairs = function(outputs, robot_name)
-    local output_pairs = {}
-    for i, v in pairs(outputs) do
-        local output_type = constants.backend_namespace..'::'..constants.pose_type
-        if v.otype == 'jacobian' then
-            output_type = robot_name..'::'..'t_'..v.target
-        end
-        output_pairs[#output_pairs + 1] = { output_type, v.target }
+  ret.joint_velocities = {}
+  local jVelocities = ilk_program[keys.joint_velocities]
+  if jVelocities ~= nil then
+    for k,v in pairs(jVelocities) do
+      ret.joint_velocities[k] = { jtype=v.jtype, coordinate=v.index, polarity=v.polarity, ctransform=v.ctransform }
     end
-    return output_pairs
+  end
+  return ret
 end
 
-local extract_robot_name = function(program)
-    return program[ilk_keywords.configuration.robot_name]
-end
+-- These are some of the keys of the _parsed models_, not of the input models.
+-- That is, the keys of the internal representation of the solver-model, which
+-- could be different than what we take as input (and we parse).
+-- These keys can be used by the code generators of this tool, which of course
+-- work on the internal representation.
+M.keys = {
+  solverKind = {
+    fk = "fk",
+    ik = { position = "ikpos", velocity = "ikvel"}
+  },
+  ops = {
+      jacobian = 'geom-jacobian',
+      jacobian_column = 'GJac-col',
+      joint_vel = 'joint-vel',
+      vel_joint_explicit = 'vel-joint',
+      vel_compose = 'vel-compose',
+      pose_compose = 'pose-compose'
+  },
+  jointType = {
+      prismatic = 'prismatic',
+      revolute  = 'revolute'
+  },
+  ctDir = { -- coordinate transform direction
+      a_x_b = 'a_x_b',
+      b_x_a = 'b_x_a'
+  },
+  outputs = {
+    itemValueKeys = {
+      type = 'otype',
+      sort = 'usersort'
+    },
+    outtypes = {
+      pose = 'pose',
+      velocity = 'velocity',
+      jacobians = 'jacobian'
+    }
+  }
 
-M = {}
-M.extract_operations = extract_operations
-M.generate_output_type_name_pairs = generate_output_type_name_pairs
-M.extract_robot_name = extract_robot_name
+}
+
 
 return M

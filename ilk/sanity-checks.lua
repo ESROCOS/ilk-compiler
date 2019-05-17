@@ -1,48 +1,61 @@
-local model_constant_cannot_be_requested_as_computation_output = function(outputs, model_const)
-    if outputs == nil then
+local keys = require("ilk.parser").keys
+
+
+local model_constant_cannot_be_requested_as_computation_output = function(program)
+    if program.meta.outputs == nil or program.model_poses == nil then
         return ''
     end
-    for i, v in pairs(outputs) do
-        for j, w in pairs(model_const) do
-            if v.target == w then
-                return v.target .. " was requested as a computation output, but it is a model constant."
+
+    for i, v in pairs(program.meta.outputs) do
+        for j, w in pairs(program.model_poses.constant) do
+            if i == j then
+                return i .. " was requested as a computation output, but it is a model constant."
             end
         end
     end
     return ''
 end
 
-local all_identifiers_used_should_be_generated_or_declared_as_constant = function(m_joint_local, compose, outputs, model_const, jacobians)
+local all_identifiers_used_should_be_generated_or_declared_as_constant = function(program)
     local created = {}
     local required = {}
-    if m_joint_local ~= nil then
-        for i,v in pairs(m_joint_local) do
-            created[#created + 1] = v.name
+    if program.meta.solver_type ~= 'fk' then
+        return ''
+    end
+
+    if program.ops ~= nil then
+        for i,v in pairs(program.ops) do
+            if v.op == keys.ops.pose_compose then
+                required[#required + 1] = v.arg1
+                required[#required + 1] = v.arg2
+                created[#created + 1] = v.res
+            elseif v.op == 'geom-jacobian' then
+                created[#created + 1] = v.name
+                required[#required + 1] = v.pose
+            end
         end
     end
-    if compose ~= nil then
-        for i,v in pairs(compose) do
-            created[#created + 1] = v[3]
-            required[#required + 1] = v[1]
-            required[#required + 1] = v[2]
+    if program.model_poses ~= nil then
+        if program.model_poses.constant ~= nil then
+            for i,v in pairs(program.model_poses.constant) do
+                created[#created + 1] = i
+            end
+        end
+        if program.model_poses.joint ~= nil then
+            for i,v in pairs(program.model_poses.joint) do
+                created[#created + 1] = i
+            end
         end
     end
-    if model_const ~= nil then
-        for i,v in pairs(model_const) do
-            created[#created + 1] = v
+    if program.meta.outputs ~= nil then
+        for i,v in pairs(program.meta.outputs) do
+            if v[keys.outputs.itemValueKeys.type] == keys.outputs.outtypes.pose then
+              required[#required + 1] = i
+            end
         end
     end
-    if outputs ~= nil then
-        for i,v in pairs(outputs) do
-            required[#required + 1] = v.target
-        end
-    end
-    if jacobians ~= nil then
-        for i,v in pairs(jacobians) do
-            created[#created + 1] = v.name
-            required[#required + 1] = v.pose
-        end
-    end
+
+
 
     for i,v in pairs(required) do
         local found = false
@@ -59,13 +72,13 @@ local all_identifiers_used_should_be_generated_or_declared_as_constant = functio
     return ''
 end
 
-local function run_sanity_checks(m_joint_local, compose, model_const, outputs, jacobians)
+local function run_sanity_checks(program, logger)
     local results = {}
-    results[#results+1] = model_constant_cannot_be_requested_as_computation_output(outputs, model_const)
-    results[#results+1] = all_identifiers_used_should_be_generated_or_declared_as_constant(m_joint_local, compose, outputs, model_const, jacobians)
+    results[#results+1] = model_constant_cannot_be_requested_as_computation_output(program)
+    results[#results+1] = all_identifiers_used_should_be_generated_or_declared_as_constant(program)
     for i,result in pairs(results) do
         if result ~= '' then
-            helpers.errmsg(result)
+            logger.error(result)
             os.exit(1)
         end
     end

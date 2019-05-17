@@ -15,7 +15,9 @@ description = {
 dependencies = {
   "lua > 5.1",
   "luafilesystem",
-  "yaml"
+  "yaml",
+  "lua_cliargs",
+  "lua-log"
 }
 build = {
   type = "builtin",

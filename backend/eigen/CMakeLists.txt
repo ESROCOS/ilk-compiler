@@ -16,6 +16,7 @@ include_directories(${EIGEN3_INCLUDE_DIRS})
 set(HEADERS
   ./core-types.h
   ./joint-transforms.h
+  ./ctransforms.h
   ./gjac.h
   ./rots.h
   ./ik.h
@@ -24,6 +25,7 @@ set(HEADERS
 )
 set(SOURCES
   ./joint-transforms.cpp
+  ./ctransforms.cpp
   ./test-utils.cpp
 )
 

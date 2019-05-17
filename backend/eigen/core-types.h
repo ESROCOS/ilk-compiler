@@ -71,6 +71,11 @@ eg_get_rotation( pose_t& m)
   return m.block<3,3>(0,0);
 }
 
+inline const_rot_m_v
+get_rotation_const(const pose_t& m)
+{
+  return m.block<3,3>(0,0);
+}
 
 inline position_v
 eg_get_position(pose_t& m)
@@ -80,6 +85,12 @@ eg_get_position(pose_t& m)
 
 inline const_position_v
 eg_get_position(const pose_t& m)
+{
+  return m.block<3,1>(0,3);
+}
+
+inline const_position_v
+get_position_const(const pose_t& m)
 {
   return m.block<3,1>(0,3);
 }
