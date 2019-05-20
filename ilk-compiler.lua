@@ -22,6 +22,7 @@ local function generator(config)
   if config.backend == 'eigen' then
       generator = require('ilk.eigen')
       genConfig.headerFileName = config.robotName
+      genConfig.dumpMetaData = true
   elseif config.backend == 'julia' then
       generator = require('ilk.julia')
   elseif config.backend == 'numpy' then

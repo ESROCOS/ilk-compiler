@@ -4,7 +4,29 @@ local metat = require("ilk.common").metatypes
 local common = require('ilk.eigen.common')
 local yaml = require('yaml')
 
-function translate_to_old_type(type)
+local eigen = require("ilk.eigen.common")
+
+local M = {}
+
+local generate_output_type_name_pairs = function(program, context)
+    local output_pairs = {}
+    for k, v in pairs(program.source.metasignature.outputs) do
+      local type = eigen.typeString(v.metatype, {nsQualified=true},context)
+      table.insert(output_pairs, { type, v.defname } )
+    end
+    return output_pairs
+end
+
+local generate_input_type_name_pairs = function(program, context)
+    local input_pairs = {}
+    for k, v in pairs(program.source.metasignature.inputs) do
+      local type = eigen.typeString(v.metatype, {nsQualified=true},context)
+      table.insert(input_pairs, { type, v.defname } )
+    end
+    return input_pairs
+end
+
+local function translate_to_legacy_solver_type(type)
     if type == 'fk' then
         return 'forward'
     elseif type == 'ikpos' then
@@ -13,6 +35,51 @@ function translate_to_old_type(type)
         return 'inverse'
     end
 end
+
+M.gen_metadata = function(context, path)
+    local fd = io.open(path..'/metadata.yml', "w") or io.stdout
+    local conf = { fd = fd, filename = fn }
+    local metadata = {}
+
+    for i, program in pairs(context.programs) do
+        local entry = {}
+        entry.robot_name = program.source.meta.robot_name
+        entry.type  = translate_to_legacy_solver_type(program.source.meta.solver_type)
+        if program.source.meta.solver_type == keys.solverKind.ik.velocity then
+          entry.ik = { kind="vel"}
+        elseif program.source.meta.solver_type == keys.solverKind.ik.position then
+          entry.ik = { kind="pos"}
+        end
+        entry.outputs = {}
+        for i,v in ipairs(program.source.metasignature.outputs) do
+          table.insert( entry.outputs, {target=v.defname, otype=v.metatype})
+        end
+        entry.inputs = {}
+        for i,v in ipairs(program.source.metasignature.inputs) do
+          table.insert( entry.inputs, {target=v.defname, otype=v.metatype})
+        end
+
+        --entry.ops   = program.source.ops
+        entry.olist = generate_output_type_name_pairs(program, context)
+        entry.ilist = generate_input_type_name_pairs(program, context)
+        entry.solver_name = program.source.meta.solver_id
+--        local olist_no_jacobians = {}
+--        for i,v in pairs(metadata_entry.olist) do
+--            if string.match(v[1],constants.pose_type) then
+--                olist_no_jacobians[#olist_no_jacobians+1] = v
+--            end
+--        end
+--        metadata_entry.olist_without_jacobians = olist_no_jacobians
+
+        metadata[entry.solver_name] = entry
+    end
+
+    local metadata_string = yaml.dump(metadata)
+    fd:write(metadata_string)
+    fd:close()
+end
+
+
 
 function sort_outputs(outputs)
     local sorted_outputs = {}
@@ -31,13 +98,12 @@ function sort_outputs(outputs)
     return sorted_outputs
 end
 
-function gen_metadata(path, programs)
+M.gen_metadata2 = function(context, path, programs)
     --local fd = io.open(path..robot_name..'_metadata.yml', "w") or io.stdout
-    local fd = io.open(path..'metadata.yml', "w") or io.stdout
-    local conf = { fd = fd, filename = fn }
+    local fd = io.open(path..'/metadata2.yml', "w") or io.stdout
     local metadata = {}
 
-    for i,parsed_program in pairs(programs) do
+    for i,parsed_program in pairs(context.programs) do
         local metadata_entry = {}
 
         local model_constants_prefix = 'mc'
@@ -49,14 +115,14 @@ function gen_metadata(path, programs)
             end
         end
 
-
-        metadata_entry.solver_name = parsed_program.meta.solver_id
-        metadata_entry.type = translate_to_old_type(parsed_program.meta.solver_type)
+        local progMetaData = parsed_program.source.meta
+        metadata_entry.solver_name = progMetaData.solver_id
+        metadata_entry.type = translate_to_legacy_solver_type(progMetaData.solver_type)
 
         metadata_entry.ops = {
-            solver_id = parsed_program.meta.solver_id,
-            type = translate_to_old_type(parsed_program.meta.solver_type),
-            robot_name = parsed_program.meta.robot_name,
+            solver_id = progMetaData.solver_id,
+            type = translate_to_legacy_solver_type(progMetaData.solver_type),
+            robot_name = progMetaData.robot_name,
             outputs = {},
             m_joint_local = {},
             jacobians = {},
@@ -65,11 +131,11 @@ function gen_metadata(path, programs)
             identifiers = {},
             compose = {}
         }
-        if parsed_program.meta.solver_type ~= 'fk' then
+        if progMetaData.solver_type ~= 'fk' then
             local knd = ""
-            if parsed_program.meta.solver_type == 'ikpos' then
+            if progMetaData.solver_type == 'ikpos' then
                 knd = "pos"
-            elseif parsed_program.meta.solver_type == 'ikvel' then
+            elseif progMetaData.solver_type == 'ikvel' then
                 knd = "vel"
             end
             metadata_entry.ops["ik"] = {
@@ -77,8 +143,8 @@ function gen_metadata(path, programs)
                 kind = knd,
                 op = "ik",
                 reference = "",
-                vectors = parsed_program.meta.solver_specs.configSpace,
-                fk = parsed_program.meta.solver_specs.fkSolverID
+                vectors = progMetaData.solver_specs.configSpace,
+                fk = progMetaData.solver_specs.fkSolverID
             }
 
         end
@@ -114,8 +180,8 @@ function gen_metadata(path, programs)
             end
         end
 
-        if (parsed_program.meta.outputs ~= nil) then
-            local sorted_outputs = sort_outputs(parsed_program.meta.outputs)
+        if (progMetaData.outputs ~= nil) then
+            local sorted_outputs = sort_outputs(progMetaData.outputs)
 
             for key,value in pairs(sorted_outputs) do
                 metadata_entry.ops.outputs[#metadata_entry.ops.outputs + 1] = {
@@ -149,15 +215,15 @@ function gen_metadata(path, programs)
 
 
         metadata_entry.olist = {}
-        if (parsed_program.meta.outputs ~= nil) then
-            local sorted_outputs = sort_outputs(parsed_program.meta.outputs)
+        if (progMetaData.outputs ~= nil) then
+            local sorted_outputs = sort_outputs(progMetaData.outputs)
 
             for key,value in ipairs(sorted_outputs) do
                 local olist_entry = {}
                 if value.otype == 'jacobian' then
                     olist_entry = {
                         --common.typeString(key),
-                        parsed_program.meta.robot_name .. '::' .. 'Jacobian_t',
+                        progMetaData.robot_name .. '::' .. 'Jacobian_t',
                         value.name
                     }
                 elseif value.otype == 'pose' then
@@ -190,4 +256,4 @@ function gen_metadata(path, programs)
 
 end
 
-return gen_metadata
+return M

@@ -53,6 +53,10 @@ local function generator(ocontext, src_programs, config)
   end
   context.programs = programs
 
+  if config.dumpMetaData then
+    local misc = require("ilk.eigen.gen-metadata")
+    misc.gen_metadata(context, config.path)
+  end
 
   local testPath = config.path.."/test"
   lfs.mkdir(testPath)
