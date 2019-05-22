@@ -3,6 +3,7 @@
 ilk_compiler_version = "0.4.0"
 
 local ilk_parser = require('ilk.parser')
+local sep = package.config:sub(1, 1) -- the path separator for the current OS
 
 local logger = require('log').new(
   "warning",
@@ -68,7 +69,6 @@ end
 -- Helper function to create a directory including parents
 --
 local mkdir = function(path)
-  local sep = package.config:sub(1, 1) -- the path separator for the current OS
   local pathStr = ""
   -- Check if the first character is the separator
   if (path:sub(1,1) == sep) then
@@ -129,7 +129,7 @@ table.sort(ilk_files)
 
 local ilkSources = {}
 for i,ilk in ipairs(ilk_files) do
-    local chunk1, errmsg = loadfile(inputfolder .. ilk)
+    local chunk1, errmsg = loadfile(inputfolder .. sep .. ilk)
     if(chunk1==nil) then
       logger.error(errmsg)
     end
@@ -137,7 +137,7 @@ for i,ilk in ipairs(ilk_files) do
     ilkSources[i] = prog
 end
 local model_values = {}
-local chunk2, errmsg = loadfile(inputfolder .. 'model-constants.lua')
+local chunk2, errmsg = loadfile(inputfolder .. sep .. 'model-constants.lua')
 if(chunk2==nil) then
   errmsg = errmsg .. "\nThe generated code will lack the numerical constants of the robot model"
   logger.warning(errmsg)
