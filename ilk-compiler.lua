@@ -1,6 +1,6 @@
 #! /usr/bin/env lua
 
-ilk_compiler_version = "0.4.0"
+ilk_compiler_version = "0.4.1"
 
 local ilk_parser = require('ilk.parser')
 local sep = package.config:sub(1, 1) -- the path separator for the current OS
@@ -13,28 +13,30 @@ local logger = require('log').new(
 local lfs = require "lfs"
 
 
-local function generator(config)
+local function getBackend(backendName, config)
   local genConfig = {
     path = config.path,
-    sourceFileName = config.robotName
+    sourceFileName = config.robotName,
+    codeTweaks = {}
   }
-  local generator = nil
-  if config.backend == 'eigen' then
-      generator = require('ilk.eigen')
+  local backend = nil
+  if backendName == 'eigen' then
+      backend = require('ilk.backend.eigen')
       genConfig.headerFileName = config.robotName
       genConfig.dumpMetaData = true
-  elseif config.backend == 'julia' then
-      generator = require('ilk.julia')
-  elseif config.backend == 'numpy' then
-      generator = require('ilk.numpy')
+  elseif backendName == 'julia' then
+      backend = require('ilk.backend.julia')
+  elseif backendName == 'numpy' then
+      backend = require('ilk.backend.numpy')
+      genConfig.codeTweaks.importBackendAs = "backend"
   else
-    error("Unknown backend '"..config.backend.."'")
+    error("Unknown backend '"..backendName.."'")
   end
-  return function(context, programs) generator(context, programs, genConfig) end
+  return backend, genConfig
 end
 
 
-
+local common = require("ilk.common")
 -- Check the given ILK models and transforms each one into the internal representation.
 -- This function also creates the 'context' object, which contains common data
 -- for the current session, like the robot name and its numerical constants.
@@ -47,12 +49,13 @@ local parseInputs = function(ilkSources, model_values)
     programs[i] = ilk_parser.parse(source)
     if programs[i].model_poses ~= nil then
       for k,v in pairs(programs[i].model_poses.constant) do
-        if model_values[k] == nil then
+        if model_values.poses[k] == nil then
           logger.warning("Could not find numeric values for pose " ..
                        k .. ", required by solver " .. programs[i].meta.solver_id)
         end
       end
     end
+    programs[i].metasignature = common.metaSignature(programs[i])
   end
   -- TODO check everything refers to the same robot, and it is consistent
   -- (e.g. same joint space size for each program)
@@ -104,12 +107,15 @@ cli:set_name("ILK-compiler")
 cli:argument("INDIR", "path to the directory with input files")
 cli:argument("OUTDIR", "path to the directory where to place outputs")
 cli:option("-b, --backend=BACKEND", "the language backed to use for code generation", "eigen")
+cli:flag("-d, --dump-ops", "print to stdout the compiled operations, do not generate any file")
+cli:flag("-s, --[no-]sanity", "do/skip consistency checks on the ILK sources", true)
 cli:flag("-v, --version", "prints the program's version and exits", printVersionAndExit)
 
 -- Parse the command line arguments
 --
 local args, err = cli:parse(arg)
 if not args and err then
+  print(err)
   cli:print_help()
   os.exit(1)
 end
@@ -133,6 +139,7 @@ for i,ilk in ipairs(ilk_files) do
     local chunk1, errmsg = loadfile(inputfolder .. sep .. ilk)
     if(chunk1==nil) then
       logger.error(errmsg)
+      os.exit(-1)
     end
     local prog = chunk1()
     ilkSources[i] = prog
@@ -150,34 +157,33 @@ end
 -- model
 local context,programs = parseInputs(ilkSources, model_values)
 
-
-local common      = require("ilk.common")
-local sanityCheck = require("ilk.sanity-checks")
-
-for i,p in ipairs(programs) do
-  sanityCheck(p, logger)
-  p.metasignature = common.metaSignature(p)
+if args.sanity then
+  local sanityCheck = require("ilk.sanity-checks")
+  for i,p in ipairs(programs) do
+    sanityCheck(p, logger)
+  end
 end
 
 
 
--- Call the actual code generator
+-- Get the backend module and its specific configuration
 --
-mkdir(args.OUTDIR)
-local generator = generator(
-                     {inputfolder=inputfolder,
-                      path=args.OUTDIR,
-                      backend=args.backend,
-                      robotName=context.robotName} )
-generator(context, programs)
+local backend, config = getBackend(args.backend, {path=args.OUTDIR, robotName=context.robotName} )
+context, programs = backend.augmentContext(context, programs)
+local opsHandlers, generateFiles = backend.getGenerators(context, config.codeTweaks )
 
-
-
-
-
-
-local generate_metadata = false
-if generate_metadata then
-    local gen_metadata = require('ilk.eigen.gen-metadata')
-    gen_metadata(args.OUTDIR, programs)
+if args['dump-ops'] then
+  local genericOpsHandlers = require("ilk.backend.common.ops-handlers")
+  for i, program in pairs(programs) do
+    for op, code in genericOpsHandlers.translate(program, opsHandlers) do
+      local text = common.tplEval_failOnError("${code}", {code=code})
+      print(text)
+    end
+  end
+else
+  mkdir(args.OUTDIR)
+  generateFiles(context, programs, config)
 end
+
+
+

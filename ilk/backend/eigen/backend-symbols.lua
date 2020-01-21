@@ -9,10 +9,10 @@ local strbits = {
   [keys.ctDir.b_x_a] = 'b_x_a'
 }
 
-RET.jointTransformSetvalue = function(jointPose)
-  local func= strbits[jointPose.ilkspec.jtype] .. '__' .. strbits[jointPose.ilkspec.dir]
-  local arg1= jointPose.statusVectVarName .. '(' .. jointPose.ilkspec.coordinate .. ')'
-  local arg2= jointPose.name
+RET.jointTransformSetvalue = function(program, jointPoseData)
+  local func= strbits[jointPoseData.joint.kind] .. '__' .. strbits[jointPoseData.direction]
+  local arg1= jointPoseData.statusVectVarName .. '(' .. jointPoseData.joint.coordinate .. ')'
+  local arg2= jointPoseData.transformName
   return func .. "(" .. arg1 .. ", " .. arg2 .. ");"
 end
 
@@ -48,7 +48,11 @@ RET.funcs = {
   orientDist="orientationDistance",
   linearCoords="linearCoords",
   angularCoords="angularCoords",
-  ct_twist="ct_twist"
+  ct_twist="ct_twist",
+  Sdot = {
+    [keys.jointType.prismatic] = 'Sdot_prismatic',
+    [keys.jointType.revolute]  = 'Sdot_revolute'
+  }
 }
 
 RET.matrixT = function(r,c)

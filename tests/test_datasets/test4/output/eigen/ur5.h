@@ -10,6 +10,7 @@
 #include <ilk/eigen/core-types.h>
 #include <ilk/eigen/joint-transforms.h>
 #include <ilk/eigen/ik.h>
+#include <ilk/eigen/operators.h>
 #include "robot-defs.h"
 
 namespace ur5 {

@@ -1,9 +1,9 @@
 local tpl    = require("ilk.template-text").template_eval
 local keys   = require('ilk.parser').keys
 local common = require('ilk.common')
-local langcom= require('ilk.langcommons')
-local cppcom = require('ilk.eigen.common')
-local backend= require('ilk.eigen.backend-symbols')
+local langcom= require('ilk.backend.common.common')
+local cppcom = require('ilk.backend.eigen.common')
+local backend= require('ilk.backend.eigen.backend-symbols')
 
 local commonEnv = function(context, config)
   return {
@@ -327,7 +327,7 @@ end
 
 
 local Generator = function(context, config)
-  local timings = require("ilk.eigen.test-timings")
+  local timings = require("ilk.backend.eigen.test-timings")
   local env = commonEnv(context, config)
 
   return function(program)

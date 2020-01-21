@@ -1,4 +1,4 @@
-local backend = require("ilk.julia.backend-symbols")
+local backend = require("ilk.backend.numpy.backend-symbols")
 local metat = require("ilk.common").metatypes
 
 local logging = require('log')
@@ -42,7 +42,7 @@ M.signature = function(program, context)
                      local args = table.concat(opts.args, ", ")
                      return ret.name.."("..args..")"
                    end
-                   return "function "..ret.name.."("..table.concat(inputs,", ")..")"
+                   return "def "..ret.name.."("..table.concat(inputs,", ").."):"
   end
   return ret
 end
@@ -57,13 +57,10 @@ M.returnStatement = function(program)
 end
 
 
-M.matrixColumn = function(mx, colIndex)
-  return "view(" .. mx .. ", :," .. colIndex+1 .. ")"
-end
 
 M.matrixBlockExpr = function (mx, columns, whichBlock)
   local startRow = backend.coordsID[whichBlock].x
-  local expr = "view(" .. mx .. ", " .. startRow .. ":" .. startRow .. "+2, 1:" ..columns.. ")"
+  local expr = mx .. "[" .. startRow .. ":" .. startRow .. "+3, 0:" ..columns.. "]"
   return {
     expr = expr,
     defAndInit = function(localVar)
@@ -75,9 +72,9 @@ end
 M.defaultLocalDefinition = function(program, context, parameter)
   local type = parameter.meta.metatype
   if (type==metat.jointState) or (type==metat.jointVel) then
-    return parameter.name .. " = " .. context.qualifiedBackendFunction("matrixInit").."("..program.source.meta.joint_space_size..",".. 1 ..")"
+    return parameter.name .. " = " .. backend.matrixT(program.source.meta.joint_space_size,1)
   else
-    return parameter.name .. " = nothing"
+    return parameter.name .. " = None"
   end
 end
 

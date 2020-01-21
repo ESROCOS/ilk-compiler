@@ -1,4 +1,17 @@
 
+local function errHandler(e)
+  -- Try to get the number of the line of the template that caused the error,
+  -- parsing the text of the stacktrace. Note that the string here in the
+  -- matching pattern should correspond to whatever is generated in the
+  -- template_eval function, further down
+  local stacktrace = debug.traceback()
+  local linen = tonumber(stacktrace:match(".-\"local text={}...\"]:(%d+).*"))
+  return {
+    error = e,
+    lineNum = linen
+  }
+end
+
 --- Evaluate a chunk of code in a constrained environment.
 -- @param unsafe_code code string
 -- @param optional environment table.
@@ -6,10 +19,11 @@
 -- @return function or error message
 local function eval_sandbox(unsafe_code, env)
   local env = env or {}
-  --  print(unsafe_code)
   local unsafe_fun, msg = load(unsafe_code, nil, 't', env)
-  if not unsafe_fun then return false, msg end
-  return xpcall(unsafe_fun, debug.traceback)
+  if unsafe_fun==nil then
+    return false, {loadError=true, msg=msg}
+  end
+  return xpcall(unsafe_fun, errHandler)
 end
 
 local function lines(s)
@@ -128,15 +142,22 @@ local function template_eval(template, env, opts)
   env.pairs = (env.pairs or pairs)
   env.ipairs = (env.ipairs or ipairs)
   env.__insertTableContents = insertTableContents
-  local ret, str = eval_sandbox(table.concat(chunk, '\n'), env)
-  if not ret and verbose then
-    local linen = tonumber(str:match(".-\"local text={}...\"]:(%d+).*"))
-    local line = "??"
-    if linen ~= nil then line = chunk[linen] end
-    local errmsg = "template_eval() failed around this line:\n\t>>> " .. line .. "\n\t" .. str
-    return ret, errmsg
+  local ok, ret = eval_sandbox(table.concat(chunk, '\n'), env)
+  if not ok and verbose then
+    local errMessage = "Error in template evaluation" -- default, should be overwritten
+    if ret.loadError then
+      errMessage = "Syntactic error in the loaded code: " .. ret.msg
+    else
+      local linen = ret.lineNum or -1
+      local line = "??"
+      if linen ~= -1 then line = chunk[linen] end
+      local err1 = "Template evaluation failed around this line:\n\t>>> " .. line .. " (line #" .. linen .. ")"
+      local err2 = "Interpreter error: " .. (tostring(ret.error) or "")
+      errMessage = err1 .. "\n" .. err2
+    end
+    return false, errMessage
   end
-  return ret, str
+  return ok, ret
 end
 
 

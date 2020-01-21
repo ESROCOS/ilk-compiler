@@ -1,11 +1,14 @@
 local tpl     = require('ilk.template-text').template_eval
-local backend = require('ilk.eigen.backend-symbols')
-local cppcom  = require('ilk.eigen.common')
+local backend = require('ilk.backend.eigen.backend-symbols')
+local cppcom  = require('ilk.backend.eigen.common')
 local com     = require('ilk.common')
-local langcom = require('ilk.langcommons')
 local keys    = require('ilk.parser').keys
 
 local M = {}
+
+local tpleval = function(template, env, opts)
+  return com.tplEval_failOnError(template, env, opts or {xtendStyle=true, returnTable=true})
+end
 
 
 M.poseCompose = function(program, poseComposeOp)
@@ -17,11 +20,7 @@ M.poseCompose = function(program, poseComposeOp)
   if program.source.meta.outputs[poseComposeOp.res]==nil then
     ids.result = backend.types[com.metatypes.pose] .. " " .. ids.result
   end
-  local ok,res = tpl("$(result) = $(arg2) * $(arg1);", ids)
-  if not ok then
-    cppcom.logger.error("In the evaluation of the text template for a pose compose")
-  end
-  return res
+  return com.tplEval_failOnError("$(result) = $(arg2) * $(arg1);", ids, {returnTable=true})
 end
 
 
@@ -69,14 +68,36 @@ M.jacobian = function(program)
   }
 end
 
+M.geometricJacobianInit = function(program, op)
+  return {
+    [1] = backend.types[com.metatypes.position3d].." poi_"..op.name.." = "..backend.funcs.posView.."("..op.pose..");"
+  }
+end
 
-M.jointVelocity = function(program, jointVelOp, jointVelocitySpec, qd_argument)
+M.geometricJacobianColumn = function(program, op, joint)
+  local codetpl = jacColTemplate[joint.kind]
+  local polarity = ""
+  if op.polarity == -1 then
+    polarity = "-"
+  end
+  local code = com.tplEval_failOnError(codetpl,
+     {
+       jpose = program.poseValueExpression(op.joint_pose),
+       funcs = backend.funcs,
+       J = op,
+       polarity = polarity
+     }, {xtendStyle=true, returnTable=true})
+  return code
+end
+
+
+M.jointVelocityTwist = function(program, jointVelOp, jointVelocitySpec, joint, qd_argument)
   local twist_t = backend.types[com.metatypes.twist]
   local ids = {
     qd  = qd_argument.name,
     velocity = jointVelOp.arg,
-    index   = jointVelocitySpec.coordinate,
-    spatialIndex = backend.spatialVectorIndex[ jointVelocitySpec.jtype ],
+    index   = joint.coordinate,
+    spatialIndex = backend.spatialVectorIndex[ joint.kind ],
     funcs =  backend.funcs
   }
   if program.source.meta.outputs[jointVelOp.arg]==nil then
@@ -116,14 +137,10 @@ M.jointVelComposeSnippets = function(program, velocityComposeOp, env)
     twistInit = "«vel_t» «res»;"
   end
   env.coordt = backend.funcs.ct_twist
+  env.sptInd = backend.spatialVectorIndex[ env.joint.kind ]
+  env. qdInd = env.joint.coordinate
 
-  env.sptInd = backend.spatialVectorIndex[ env.jv.jtype ]
-  env. qdInd = env.jv.coordinate
-
-  local eval = function(text)
-    local ok,res = tpl(text, env, {xtendStyle=true})
-    return res
-  end
+  local eval = function(text) return tpleval(text, env) end
   return {
     initializeVelocityVariable = eval(twistInit),
     subtractJointVelocity      = eval("«v2»[«sptInd»] -= «qd»[«qdInd»];"),
@@ -131,5 +148,62 @@ M.jointVelComposeSnippets = function(program, velocityComposeOp, env)
     addJointVelocity           = eval("«res»[«sptInd»] += «qd»[«qdInd»];")
   }
 end
+
+M.jointAccelerationTwist = function(program, op, jointAccTwistSpec, joint, qdd_arg)
+  local twist_t = backend.types[com.metatypes.twist]
+  local ids = {
+    qdd = qdd_arg.name,
+    acc = op.arg,
+    index = joint.coordinate,
+    spatialIndex = backend.spatialVectorIndex[ joint.kind ],
+    funcs =  backend.funcs
+  }
+  if program.source.meta.outputs[op.arg]==nil then
+    ids.init = twist_t .. " " .. op.arg .. " = " .. twist_t .. "::Zero();"
+  else
+    ids.init = op.arg .. ".setZero();"
+  end
+
+  local texttpl = nil
+  if op.polarity == -1 then
+    cppcom.logger.warning("Joint acceleration twist with inverse polarity not supported yet")
+    texttpl =
+[[«init»
+#error Inverse polarity acceleration not supported yet
+]]
+  else
+    texttpl =
+[[«init»
+«acc»[«spatialIndex»] = «qdd»(«index»);]]
+  end
+  return com.tplEval_failOnError(texttpl, ids, {xtendStyle=true, returnTable=true})
+end
+
+
+M.forwardPropagationAcceleration = function(program, op, env)
+  local defineLocalForResult = program.source.meta.outputs[op.res]==nil
+  local twistInit = ""
+  if defineLocalForResult then
+    env.acc_t = backend.types[com.metatypes.acceleration]
+    twistInit = "«acc_t» «res»;"
+  end
+  env.coordt = backend.funcs.ct_twist
+  env.sptInd = backend.spatialVectorIndex[ env.joint.kind ]
+  env.Sdot   = backend.funcs.Sdot[ env.joint.kind ]
+  env.vel    = op.velocity
+
+  local lines = function(text) return tpleval(text, env, {xtendStyle=true, returnTable=true}) end
+  return {
+    initializeAccelerationVariable = lines(twistInit),
+    subtractJointAcceleration      = lines("«a2»[«sptInd»] -= «qdd»[«joint.coordinate»];"),
+    twistCoordinateTransform       = lines("«coordt»( «H», «a2», «res» );"),
+    addRelativeAcceleration = lines(
+[[«res» += «Sdot»(«vel») * «qd»[«joint.coordinate»];
+«res»[«sptInd»] += «qdd»[«joint.coordinate»];
+]]
+)
+  }
+end
+
 
 return M

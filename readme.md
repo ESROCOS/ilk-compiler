@@ -34,8 +34,8 @@ manager (or from sources). For example, you could follow this procedure
 3. Install Lua dependencies using luarocks:
 
     ```
-    cd etc
-    luarocks install --local lua-deps-1.0-1.rockspec
+    cd etc/
+    luarocks install --local --only-deps ilkcompiler-0.4.0-1.rockspec
     ```
 
 

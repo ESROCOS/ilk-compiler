@@ -1,6 +1,6 @@
 local keys   = require('ilk.parser').keys
 local common = require('ilk.common')
-local langcom= require('ilk.langcommons')
+local langcom= require('ilk.backend.common.common')
 
 local commonEnv = function(context, config, backend)
   return {

@@ -1,7 +1,7 @@
 
 local common = require('ilk.common')
-local cppcom = require("ilk.eigen.common")
-local backend= require("ilk.eigen.backend-symbols")
+local cppcom = require("ilk.backend.eigen.common")
+local backend= require("ilk.backend.eigen.backend-symbols")
 local tpl    = require("ilk.template-text").template_eval
 
 local M = {}
@@ -20,7 +20,7 @@ struct «struct»
 {
     «struct»();
 
-    @for k,_ in sorted(modelValues) do
+    @for k,_ in sorted(modelValues.poses) do
     «pose_t» «k»;
     @end
 };
@@ -56,6 +56,7 @@ M.generator = function(context, programs)
 #include <ilk/eigen/core-types.h>
 #include <ilk/eigen/joint-transforms.h>
 #include <ilk/eigen/ik.h>
+#include <ilk/eigen/operators.h>
 #include "robot-defs.h"
 
 ${ns.open()}

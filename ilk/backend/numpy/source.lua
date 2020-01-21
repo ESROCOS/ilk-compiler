@@ -6,11 +6,10 @@
 local tpl = require('ilk.template-text').template_eval
 local com = require('ilk.common')
 local keys = require("ilk.parser").keys
-local langcom = require('ilk.langcommons')
 
-local backend  = require('ilk.numpy.backend-symbols')
-local numpycom = require('ilk.numpy.common')
-local numpyops = require('ilk.numpy.ops')
+local backend  = require('ilk.backend.numpy.backend-symbols')
+local numpycom = require('ilk.backend.numpy.common')
+local numpyops = require('ilk.backend.numpy.ops')
 
 
 local M = {}
@@ -22,8 +21,7 @@ local modelConstsCTor = function(context, config)
 
   local env = {
     struct = "ModelConstants",
-    modelValues = context.outer.modelValues,
-    sorted = com.alphabPairs,
+    poses  = function() return com.alphabPairs(context.outer.modelValues.poses) end,
 
     setOneCode = function(poseid, value)
       local ok,res = tpl([[
@@ -41,20 +39,20 @@ local modelConstsCTor = function(context, config)
   local ret = {}
   local ok,res = tpl([[
 def «struct»():
-    @for k,_ in sorted(modelValues) do
-    @  local one = setOneCode(k, modelValues[k] )
+    @for k, v in poses() do
+    @  local one = setOneCode(k, v )
     ${one}
 
     @end
 
     mc_config = namedtuple('mc', [
-    @for k,_ in sorted(modelValues) do
+    @for k,_ in poses() do
     '«k»',
     @end
     ])
 
     mc = mc_config(
-    @for k,_ in sorted(modelValues) do
+    @for k,_ in poses() do
     «k» = «k»,
     @end
     )
@@ -90,27 +88,36 @@ ${mcCTor}
 end
 
 
-M.fksource = function(program, context, config)
-  local numpy_specifics = numpyops.closuresOnConfig(config)
-  numpy_specifics.jointTransformSetvalue = backend.jointTransformSetvalue(config.importBackendAs)
+local ops_handlers    = require("ilk.backend.common.ops-handlers")
+local jointTransforms = require("ilk.backend.common.joint-transforms")
+
+M.fksource = function(program, context, opsHandlers, codeTweaks)
+  local aux = {
+    jointTransformSetvalue = backend.jointTransformSetvalue(codeTweaks.importBackendAs)
+  }
+  local jTransf = jointTransforms.setJointTransforms(program, aux)
 
   local env = {
       bend = backend,
       signature = program.signature.toString({declaration=false}),
-      body = langcom.code.motionSweep(program, context, numpy_specifics),
+      jTransf = jTransf,
+      compiled_ops = function() return ops_handlers.translate(program, opsHandlers) end,
       returns = numpycom.returnStatement(program)
   }
   local templ =
 [[
 «signature»
 
-    ${body}
+    ${jTransf}
+
+  @ for op, code in compiled_ops() do
+    ${code}
+  @ end
 
     «returns»
 
 ]]
-  return com.tplEval_failOnError(templ, env,
-                    {verbose=true, xtendStyle=true, returnTable = false})
+  return com.tplEval_failOnError(templ, env, {xtendStyle=true})
 end
 
 
@@ -245,6 +252,17 @@ M.iksource = function(program, context, config)
      program.source.meta.solver_type ~= keys.solverKind.ik.velocity then
     error("This generator is meant only for inverse kinematics routines")
   end
+  local fkid = program.source.meta.solver_specs.fkSolverID
+  local fkSolver, i = com.findProgramByID(fkid, context.outer)
+  if fkSolver == nil then
+    error("Could not find the parsed model of FK solver "..fkid..
+          ", required by IK solver "..program.source.meta.solver_id)
+  end
+  local candidate = context.programs[i]
+  if candidate.source ~= fkSolver then
+    numpycom.logger.warning("Possible error in the FK solver of IK solver"..program.source.meta.solver_id)
+  end
+  program.fkSolver = candidate
   return ikgen[program.source.meta.solver_type](program, context, config)
 end
 

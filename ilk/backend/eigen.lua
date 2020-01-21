@@ -5,10 +5,10 @@
 --]]
 local keys      = require('ilk.parser').keys
 local comm      = require('ilk.common')
-local cppcomm   = require('ilk.eigen.common')
-local sourcegen = require('ilk.eigen.source')
-local headergen = require('ilk.eigen.header')
-local test      = require("ilk.eigen.test")
+local cppcomm   = require('ilk.backend.eigen.common')
+local sourcegen = require('ilk.backend.eigen.source')
+local headergen = require('ilk.backend.eigen.header')
+local test      = require("ilk.backend.eigen.test")
 local lfs = require('lfs')
 
 
@@ -31,30 +31,41 @@ local poseValueExpression = function(program, signature)
 end
 
 
-
-
-local function generator(ocontext, src_programs, config)
-
+local function augmentContext(oContext, sourcePrograms)
   -- Augment the context, with C++/Eigen specific context information :
   local context = {
-    outer = ocontext,
-    namespace = cppcomm.contextNS(ocontext)
+    outer = oContext,
+    namespace = cppcomm.contextNS(oContext)
   }
 
   local programs = {}
-  for i, prog in ipairs( src_programs ) do
+  for i, prog in ipairs( sourcePrograms ) do
     -- Also augment the program model, with C++ specific stuff
     local sign = cppcomm.signature(prog, context)
+
+    local inputsByType = {}
+    for i,iarg in ipairs(sign.inputs) do
+      inputsByType[ iarg.meta.metatype ] = sign.inputs[i]
+    end
+
     programs[i] = {
       source=prog,
       signature=sign,
-      poseValueExpression = poseValueExpression(prog, sign)
+      poseValueExpression = poseValueExpression(prog, sign),
+      inputsByType = inputsByType
     }
   end
   context.programs = programs
 
+  return context, programs
+end
+
+
+local function getGenerator(opsHandlers, codeTweakConfig)
+
+local function generator(context, programs, config)
   if config.dumpMetaData then
-    local misc = require("ilk.eigen.gen-metadata")
+    local misc = require("ilk.backend.eigen.gen-metadata")
     misc.gen_metadata(context, config.path)
   end
 
@@ -88,7 +99,7 @@ local function generator(ocontext, src_programs, config)
     genTestFile(prog, testtext)
 
     if prog.source.meta.solver_type == keys.solverKind.fk then
-      sourcetext = sourcegen.fksource(prog, context)
+      sourcetext = sourcegen.fksource(prog, context, opsHandlers)
 
       testtext = solverTestsGenerator.numericComparison()
       genTestFile(prog, testtext, "-cmp")
@@ -109,20 +120,20 @@ local function generator(ocontext, src_programs, config)
   --
   -- CMake file generation
   --
-  local cmaketext = require('ilk.eigen.cmake').generator(
-      { robot       = ocontext.robotName,
-        libname     = ocontext.robotName .. 'kingen',
+  local cmaketext = require('ilk.backend.eigen.cmake').generator(
+      { robot       = context.outer.robotName,
+        libname     = context.outer.robotName .. 'kingen',
         files       = { libsource=config.sourceFileName,
                         libheader=config.headerFileName,
                         defsheader='robot-defs', test=testFiles},
-        includePath = 'kingen/' .. ocontext.robotName
+        includePath = 'kingen/' .. context.outer.robotName
       } )
 
   fd = io.open(config.path.."/CMakeLists.txt", "w")
   fd:write(cmaketext)
   fd:close()
 
---  local make = require('ilk.eigen.makefile').gen_makefile
+--  local make = require('ilk.backend.eigen.makefile').gen_makefile
 --  fd = io.open(config.path.."/makefile", "w")
 --  make(fd, {testfiles=testFiles, libname=ocontext.robotName})
 --  fd:close()
@@ -141,4 +152,18 @@ local function generator(ocontext, src_programs, config)
 
 end
 
-return generator
+  return generator
+end
+
+local function getGenerators(context, sourceTweakConfig)
+  local opsHandlers = require("ilk.backend.eigen.ops")
+  local generator = getGenerator(opsHandlers, sourceTweakConfig)
+
+  return opsHandlers, generator
+end
+
+
+return {
+  augmentContext = augmentContext,
+  getGenerators  = getGenerators
+}

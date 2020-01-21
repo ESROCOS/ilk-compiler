@@ -1,14 +1,25 @@
+local logger = require('log').new(
+  "warning",
+  require('log.writer.console.color').new()
+)
+
 -- Some of the keys of the Lua-hosted ILK models. These keys shall not be
 -- visible outside this parser, which is the responsible for parsing the inputs
 -- and create the internal representation of the models.
 local keys = {
     robot_name = "robot_name",
-    joint_space = "joint_space_size",
     solver_type= "solver_type",
     solver_id  = "solverid",
+    joints = "joints",
+    jointType = {
+      key = 'kind',
+      prismatic = 'prismatic',
+      revolute  = 'revolute'
+    },
     imperativeBlock='ops',
     poses='poses',
-    joint_velocities = 'joint_velocities',
+    joint_vel_twists = 'joint_vel_twists',
+    joint_acc_twists = 'joint_acc_twists',
     outputs='outputs',
     ik = {
       kind = {velocity = 'vel', position = 'pos' },
@@ -19,8 +30,22 @@ local keys = {
 
 local M = {}
 
+local function getJointSpaceSize(program)
+  local dofs = 0
+  for j, jspec in pairs(program[keys.joints]) do
+    local kind = jspec[keys.jointType.key]
+    if kind == keys.jointType.prismatic or kind == keys.jointType.revolute then
+      dofs = dofs + 1
+    else
+      logger.warning("Unknown joint type '" .. kind .. "' for joint '" .. j .. "'")
+    end
+  end
+  return dofs
+end
+
 
 local get_metainfo = function(program)
+  local jsSize = 0
   local ilkSolverType = program[keys.solver_type]
   local solverKind = ilkSolverType
   local specs = {}
@@ -29,6 +54,11 @@ local get_metainfo = function(program)
   if ilkSolverType == "forward" then
     solverKind = M.keys.solverKind.fk
     outputs    = program[keys.outputs]
+    if program[keys.joints] == nil then
+      logger.warning("Could not find the 'joints' section in source program '" .. program[keys.solver_id] .. "'")
+    else
+      jsSize = getJointSpaceSize(program)
+    end
   elseif ilkSolverType == "inverse" then
     if program.kind == keys.ik.kind.velocity then
       solverKind = M.keys.solverKind.ik.velocity
@@ -55,7 +85,8 @@ local get_metainfo = function(program)
 
   return {
     robot_name = program[keys.robot_name],
-    joint_space_size = program[keys.joint_space] or 6,
+    joint_space_size = jsSize,
+    joints = program[keys.joints],
     solver_type= solverKind,
     solver_specs=specs,
     solver_id  = program[keys.solver_id],
@@ -72,20 +103,30 @@ M.parse = function(ilk_program)
   ret.meta = get_metainfo(ilk_program)
   ret.ops = ilk_program[keys.imperativeBlock]
 
-  local ilkposes = ilk_program[keys.poses]
-  if ilkposes ~= nil then
-    ret.model_poses = { constant=ilkposes.constant, joint={} }
-    for k,v in pairs(ilkposes.joint) do
-      ret.model_poses.joint[k] = { jtype=v.jtype, dir=v.dir, coordinate=v.input}
+  ret.model_poses = ilk_program[keys.poses]
+
+  -- Joint velocity twists
+  ret.joint_vel_twists = {}
+  local joint_vel_twists = ilk_program[keys.joint_vel_twists]
+  if joint_vel_twists ~= nil then
+    for k,v in pairs(joint_vel_twists) do
+      if ret.meta.joints[ v.joint ] == nil then
+        logger.warning("Velocity '" .. k .. "' references non existing joint '" .. v.joint .."'")
+      end
     end
+    ret.joint_vel_twists = joint_vel_twists
   end
 
-  ret.joint_velocities = {}
-  local jVelocities = ilk_program[keys.joint_velocities]
-  if jVelocities ~= nil then
-    for k,v in pairs(jVelocities) do
-      ret.joint_velocities[k] = { jtype=v.jtype, coordinate=v.index, polarity=v.polarity, ctransform=v.ctransform }
+  -- Joint acceleration twists
+  ret.joint_acc_twists = {}
+  local jatwists = ilk_program[keys.joint_acc_twists]
+  if jatwists ~= nil then
+    for k,v in pairs(jatwists) do
+      if ret.meta.joints[ v.joint ] == nil then
+        logger.warning("Acceleration '" .. k .. "' references non existing joint '" .. v.joint .."'")
+      end
     end
+    ret.joint_acc_twists = jatwists
   end
   return ret
 end
@@ -101,12 +142,14 @@ M.keys = {
     ik = { position = "ikpos", velocity = "ikvel"}
   },
   ops = {
+      pose_compose = 'pose-compose',
       jacobian = 'geom-jacobian',
       jacobian_column = 'GJac-col',
       joint_vel = 'joint-vel',
-      vel_joint_explicit = 'vel-joint',
+      joint_vel_twist = 'joint-vel-twist',
       vel_compose = 'vel-compose',
-      pose_compose = 'pose-compose'
+      joint_acc_twist = 'joint-acc-twist',
+      acc_compose = 'acc-compose'
   },
   jointType = {
       prismatic = 'prismatic',

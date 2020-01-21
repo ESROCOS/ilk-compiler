@@ -13,10 +13,12 @@ M.metatypes = {
   orient3d    = "orientation",
   twist       = "twist",
   velocity    = "twist",
+  acceleration= "twist",
   linVel3d    = "linearVelocity",
   angVel3d    = "angularVelocity",
   jointState  = "jointState",
   jointVel    = "jointVelocity",
+  jointAcc    = "jointAcceleration",
   modelConsts = "ModelConstants",
   jacobian    = "jacobian",
   axisAngle   = "axisAngle",
@@ -37,10 +39,13 @@ local function metaArgsSetterCommon(program, signature)
   signature.inputs  = {}
   signature.outputs = {}
 
-  signature.inputs[1] = { defname="mc", metatype=M.metatypes.modelConsts, direction="input" }
-  signature.inputs[2] = { defname="q" , metatype=M.metatypes.jointState, direction="input" }
-
+  local ii = 1
+  signature.inputs[ii] = { defname="mc", metatype=M.metatypes.modelConsts, direction="input" }
+  ii=ii+1
+  signature.inputs[ii] = { defname="q" , metatype=M.metatypes.jointState, direction="input" }
+  ii=ii+1
   local requireJVelocity = false
+  local requireJAcceleration = false
   for k,v in pairs(program.meta.outputs) do
     -- Note how we are relying on 'v.otype' to be matching one of the _keys_ of
     -- the local metatypes table. Anywhere else we should always use the
@@ -48,10 +53,18 @@ local function metaArgsSetterCommon(program, signature)
     signature.outputs[ v.usersort ] = { defname=k, metatype=M.metatypes[v.otype], direction="output" }
     if v.otype == "twist" or v.otype == "velocity" then
       requireJVelocity = true
+    elseif v.otype == "acceleration" then
+      requireJVelocity = true
+      requireJAcceleration = true
     end
   end
   if requireJVelocity then
-    signature.inputs[3] = { defname="qd", metatype=M.metatypes.jointVel, direction="input"}
+    signature.inputs[ii] = { defname="qd", metatype=M.metatypes.jointVel, direction="input"}
+    ii=ii+1
+  end
+  if requireJAcceleration then
+    signature.inputs[ii] = { defname="qdd", metatype=M.metatypes.jointAcc, direction="input"}
+    ii=ii+1
   end
 end
 

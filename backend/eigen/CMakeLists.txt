@@ -21,6 +21,7 @@ set(HEADERS
   ./rots.h
   ./ik.h
   ./misc.h
+  ./operators.h
   ./test-utils.h
 )
 set(SOURCES

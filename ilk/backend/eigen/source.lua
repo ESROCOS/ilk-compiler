@@ -1,10 +1,9 @@
 
 local tpl = require('ilk.template-text').template_eval
-local backend = require('ilk.eigen.backend-symbols')
-local cppcom = require('ilk.eigen.common')
-local cppops = require('ilk.eigen.ops')
+local backend = require('ilk.backend.eigen.backend-symbols')
+local cppcom = require('ilk.backend.eigen.common')
+local cppops = require('ilk.backend.eigen.ops')
 local com = require('ilk.common')
-local langcom = require('ilk.langcommons')
 local keys = require("ilk.parser").keys
 
 local M = {}
@@ -47,8 +46,8 @@ local modelConstsCTor = function(context)
   local ok,res = tpl([[
 «ns»::«struct»::«struct»()
 {
-    @for k,_ in sorted(modelValues) do
-    @  local one = setOneCode(k, modelValues[k] )
+    @for k, v in sorted(modelValues.poses) do
+    @  local one = setOneCode(k, v )
     ${one}
 
     @end
@@ -85,14 +84,21 @@ ${mcCTor}
   return res
 end
 
+local ops_handlers = require("ilk.backend.common.ops-handlers")
+local jointTransforms = require("ilk.backend.common.joint-transforms")
 
-M.fksource = function(program, context)
-  cppops.jointTransformSetvalue = backend.jointTransformSetvalue
+M.fksource = function(program, context, opsHandlers)
+  local aux = {
+    jointTransformSetvalue = backend.jointTransformSetvalue
+  }
+
+  local jTransf = jointTransforms.setJointTransforms(program, aux)
 
   local env = {
       signature = program.signature.toString({declaration=false}),
       defs = code_jointTransformLocals(program),
-      body = langcom.code.motionSweep(program, context, cppops)
+      jTransf = jTransf,
+      compiled_ops = function() return ops_handlers.translate(program, opsHandlers) end
   }
   local templ =
 [[
@@ -100,11 +106,14 @@ M.fksource = function(program, context)
 {
     ${defs}
 
-    ${body}
+    ${jTransf}
+
+  @ for op, code in compiled_ops() do
+    ${code}
+  @ end
 }
 ]]
-  return com.tplEval_failOnError(templ, env,
-                           {verbose=true, xtendStyle=true, returnTable = false})
+  return com.tplEval_failOnError(templ, env, {xtendStyle=true})
 end
 
 
@@ -262,7 +271,7 @@ M.iksource = function(program, context)
 
   local fkSolver = cppcom.findProgramByID(program.source.meta.solver_specs.fkSolverID, context)
   if fkSolver == nil then
-    error("Could not find the parsed model of FK solver "..fkid..
+    error("Could not find the parsed model of FK solver "..program.source.meta.solver_specs.fkSolverID..
           ", required by IK solver "..program.source.meta.solver_id)
   end
   program.fkSolver = fkSolver

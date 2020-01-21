@@ -1,8 +1,7 @@
 local tpl    = require("ilk.template-text").template_eval
 local common = require('ilk.common')
-local langcom= require('ilk.langcommons')
-local cppcom = require('ilk.eigen.common')
-local testcom= require("ilk.eigen.test")
+local cppcom = require('ilk.backend.eigen.common')
+local testcom= require("ilk.backend.eigen.test")
 
 
 local function test_header_eigen(config, idx)

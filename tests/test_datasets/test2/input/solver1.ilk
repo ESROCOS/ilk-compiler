@@ -3,6 +3,14 @@ return {
     solverid = 'solver1',
     solver_type = 'forward',
     robot_name = 'ur5',
+    joints = {
+        shoulder_pan = { kind='revolute', coordinate=0 },
+        shoulder_lift = { kind='revolute', coordinate=1 },
+        elbow = { kind='revolute', coordinate=2 },
+        wr1 = { kind='revolute', coordinate=3 },
+        wr2 = { kind='revolute', coordinate=4 },
+        wr3 = { kind='revolute', coordinate=5 }
+    },
     poses = {
         constant = {
             shoulder_pan__base={},
@@ -18,26 +26,26 @@ return {
             wrist_1__wr2={}
         },
         joint = {
-            forearm__elbow = { jtype='revolute', dir='a_x_b', input=2 },
-            wrist_3__wr3 = { jtype='revolute', dir='a_x_b', input=5 },
-            elbow__forearm = { jtype='revolute', dir='b_x_a', input=2 },
-            wr3__wrist_3 = { jtype='revolute', dir='b_x_a', input=5 },
-            upperarm__shoulder_lift = { jtype='revolute', dir='a_x_b', input=1 },
-            shoulder_lift__upperarm = { jtype='revolute', dir='b_x_a', input=1 },
-            wrist_2__wr2 = { jtype='revolute', dir='a_x_b', input=4 },
-            shoulder__shoulder_pan = { jtype='revolute', dir='a_x_b', input=0 },
-            wrist_1__wr1 = { jtype='revolute', dir='a_x_b', input=3 },
-            wr1__wrist_1 = { jtype='revolute', dir='b_x_a', input=3 },
-            wr2__wrist_2 = { jtype='revolute', dir='b_x_a', input=4 }
+            forearm__elbow = { joint='elbow', dir='a_x_b' },
+            elbow__forearm = { joint='elbow', dir='b_x_a' },
+            wrist_3__wr3   = { joint='wr3'  , dir='a_x_b' },
+            wr3__wrist_3   = { joint='wr3'  , dir='b_x_a' },
+            upperarm__shoulder_lift = { joint='shoulder_lift', dir='a_x_b' },
+            shoulder_lift__upperarm = { joint='shoulder_lift', dir='b_x_a' },
+            shoulder__shoulder_pan = { joint='shoulder_pan', dir='a_x_b' },
+            wrist_1__wr1 = { joint='wr1', dir='a_x_b' },
+            wr1__wrist_1 = { joint='wr1', dir='b_x_a' },
+            wr2__wrist_2 = { joint='wr2', dir='b_x_a' },
+            wrist_2__wr2 = { joint='wr2', dir='a_x_b' }
         }
     },
-    joint_velocities = {
-        v__wrist_1__forearm = { jtype='revolute', index=3, polarity=1 },
-        v__wrist_2__wrist_1 = { jtype='revolute', index=4, polarity=1 },
-        v__upperarm__shoulder = { jtype='revolute', index=1, polarity=1 },
-        v__wrist_3__wrist_2 = { jtype='revolute', index=5, polarity=1 },
-        v__shoulder__base = { jtype='revolute', index=0, polarity=1 },
-        v__forearm__upperarm = { jtype='revolute', index=2, polarity=1 }
+    joint_vel_twists = {
+        v__wrist_1__forearm = { joint='wr1', polarity=1 },
+        v__wrist_2__wrist_1 = { joint='wr2', polarity=1 },
+        v__upperarm__shoulder = { joint='shoulder_lift', polarity=1 },
+        v__wrist_3__wrist_2 = { joint='wr3', polarity=1 },
+        v__shoulder__base = { joint='shoulder_pan', polarity=1 },
+        v__forearm__upperarm = { joint='elbow', polarity=1 }
     },
     ops = {
         { op='pose-compose', arg1='shoulder_lift__shoulder', arg2='shoulder__shoulder_pan', res='shoulder_lift__shoulder_pan' },
@@ -58,7 +66,7 @@ return {
         { op='pose-compose', arg1='wrist_3__wr3', arg2='wr3__base', res='wrist_3__base' }
     ,
 
-        { op='vel-joint', arg='v__shoulder__base' }
+        { op='joint-vel-twist', arg='v__shoulder__base' }
     ,
 
         { op='vel-compose', arg1='v__upperarm__shoulder', arg2='v__shoulder__base', pose='shoulder__upperarm', res='v__upperarm__base' },
@@ -70,12 +78,12 @@ return {
 
 
         { op='geom-jacobian', name='J_wrist_3_base', pose='wrist_3__base' },
-        { op='GJac-col', jtype='revolute', jac='J_wrist_3_base', col=0, joint_pose='shoulder_pan__base', polarity=1 },
-        { op='GJac-col', jtype='revolute', jac='J_wrist_3_base', col=1, joint_pose='shoulder_lift__base', polarity=1 },
-        { op='GJac-col', jtype='revolute', jac='J_wrist_3_base', col=2, joint_pose='elbow__base', polarity=1 },
-        { op='GJac-col', jtype='revolute', jac='J_wrist_3_base', col=3, joint_pose='wr1__base', polarity=1 },
-        { op='GJac-col', jtype='revolute', jac='J_wrist_3_base', col=4, joint_pose='wr2__base', polarity=1 },
-        { op='GJac-col', jtype='revolute', jac='J_wrist_3_base', col=5, joint_pose='wr3__base', polarity=1 }
+        { op='GJac-col', joint='shoulder_pan' , jac='J_wrist_3_base', col=0, joint_pose='shoulder_pan__base', polarity=1 },
+        { op='GJac-col', joint='shoulder_lift', jac='J_wrist_3_base', col=1, joint_pose='shoulder_lift__base', polarity=1 },
+        { op='GJac-col', joint='elbow'        , jac='J_wrist_3_base', col=2, joint_pose='elbow__base', polarity=1 },
+        { op='GJac-col', joint='wr1'          , jac='J_wrist_3_base', col=3, joint_pose='wr1__base', polarity=1 },
+        { op='GJac-col', joint='wr2'          , jac='J_wrist_3_base', col=4, joint_pose='wr2__base', polarity=1 },
+        { op='GJac-col', joint='wr3'          , jac='J_wrist_3_base', col=5, joint_pose='wr3__base', polarity=1 }
 
     },
 

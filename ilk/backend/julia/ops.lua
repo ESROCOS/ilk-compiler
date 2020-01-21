@@ -1,8 +1,7 @@
 local tpl     = require('ilk.template-text').template_eval
-local backend = require('ilk.julia.backend-symbols')
-local jlcom   = require('ilk.julia.common')
+local backend = require('ilk.backend.julia.backend-symbols')
+local jlcom   = require('ilk.backend.julia.common')
 local com     = require('ilk.common')
-local langcom = require('ilk.langcommons')
 local keys    = require('ilk.parser').keys
 
 local M = {}
@@ -14,7 +13,7 @@ M.poseCompose = function(program, poseComposeOp)
       arg1   = program.poseValueExpression(poseComposeOp.arg1),
       arg2   = program.poseValueExpression(poseComposeOp.arg2)
   }
-  return com.tplEval_failOnError("$(result) = $(arg2) * $(arg1)", ids)
+  return com.tplEval_failOnError("$(result) = $(arg2) * $(arg1)", ids, {returnTable=true})
 end
 
 
@@ -36,38 +35,38 @@ local jacColTemplate = {
 ]]
 }
 
-M.jacobian = function(context, program)
+
+M.geometricJacobianInit = function(context, program, op)
   local bend = context.backendModule
   return {
-    init = function(jac_op)
-             return {
-               [1] = jac_op.name .. " = " .. context.matrixInitExpr(6,program.source.meta.joint_space_size),
-               [2] = "poi_"..jac_op.name.." = "..bend.."."..backend.funcs.posView.."("..program.poseValueExpression(jac_op.pose)..")"
-             }
-           end,
-    column = function(jac_col)
-               local codetpl = jacColTemplate[jac_col.jtype]
-               local tplenv = {
-                 bendImport = bend,
-                 bend  = backend,
-                 jtype = jac_col.jtype,
-                 jpose = program.poseValueExpression(jac_col.joint_pose),
-                 J = jac_col,
-                 utils = jlcom
-               }
-               local ok,res = tpl(codetpl, tplenv, {xtendStyle=true, returnTable=true})
-               return res
-             end
+   [1] = op.name .. " = " .. context.matrixInitExpr(6,program.source.meta.joint_space_size),
+   [2] = "poi_"..op.name.." = "..bend.."."..backend.funcs.posView.."("..program.poseValueExpression(op.pose)..")"
   }
 end
 
+M.geometricJacobianColumn = function(context, program, op, joint, config)
+  local bend = context.backendModule
+  local codetpl = jacColTemplate[joint.kind]
+  local tplenv = {
+     bendImport = bend,
+     bend  = backend,
+     jtype = joint.kind,
+     jpose = program.poseValueExpression(op.joint_pose),
+     J = op,
+     utils = jlcom
+   }
+   local ok,res = tpl(codetpl, tplenv, {xtendStyle=true, returnTable=true})
+   return res
+end
 
-M.jointVelocity = function(context, program, jointVelOp, jointVelocitySpec, qd_argument)
+
+
+M.jointVelocityTwist = function(context, program, jointVelOp, jointVelocitySpec, joint, qd_argument)
   local ids = {
     qd  = qd_argument.name,
     velocity = jointVelOp.arg,
-    index   = jointVelocitySpec.coordinate+1,
-    spatialIndex = backend.spatialVectorIndex[ jointVelocitySpec.jtype ],
+    index   = joint.coordinate+1,
+    spatialIndex = backend.spatialVectorIndex[ joint.kind ],
     funcs =  backend.funcs,
     init = context.matrixInitExpr(6,1)
   }
@@ -97,11 +96,11 @@ M.jointVelComposeSnippets = function(context, program, velocityComposeOp, env)
   env.coordt    = context.qualifiedBackendFunction("ct_twist")
   env.twistInit = context.matrixInitExpr(6,1)
 
-  env.sptInd = backend.spatialVectorIndex[ env.jv.jtype ]
-  env. qdInd = env.jv.coordinate
+  env.sptInd = backend.spatialVectorIndex[ env.joint.kind ]
+  env. qdInd = env.joint.coordinate
 
   local eval = function(text)
-    local ok,res = tpl(text, env, {xtendStyle=true})
+    local ok,res = tpl(text, env, {xtendStyle=true,returnTable=true})
     return res
   end
   return {
@@ -125,8 +124,9 @@ M.closuresOnContext = function (context)
   end
   return {
     poseCompose = M.poseCompose,
-    jacobian        = function(...) return M.jacobian(addContextToArgs(...)) end,
-    jointVelocity   = function(...) return M.jointVelocity(addContextToArgs(...)) end,
+    geometricJacobianInit   = function(...) return M.geometricJacobianInit(addContextToArgs(...)) end,
+    geometricJacobianColumn = function(...) return M.geometricJacobianColumn(addContextToArgs(...)) end,
+    jointVelocityTwist = function(...) return M.jointVelocityTwist(addContextToArgs(...)) end,
     velocityCompose = function(...) return M.velocityCompose(addContextToArgs(...)) end,
     jointVelComposeSnippets = function(...) return M.jointVelComposeSnippets( addContextToArgs(...) ) end
   }

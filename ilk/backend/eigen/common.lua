@@ -1,4 +1,4 @@
-local backend = require("ilk.eigen.backend-symbols")
+local backend = require("ilk.backend.eigen.backend-symbols")
 local tpl     = require("ilk.template-text").template_eval
 
 local logger = require('log').new(
@@ -40,9 +40,11 @@ local metat = require("ilk.common").metatypes
 local typesMap = {
   [metat.jointState]  = "joint_state",
   [metat.jointVel]    = "joint_state", -- in C++/Eigen we use the same container for position and velocity
+  [metat.jointAcc]    = "joint_state", -- and also for acceleration
   [metat.modelConsts] = "ModelConstants",
   [metat.jacobian]    = "Jacobian_t"
 }
+
 M.typeString = function(type, opts, context)
   if type==nil then error("Nil type passed to typeString()") end
 

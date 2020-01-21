@@ -6,10 +6,10 @@
 local tpl       = require('ilk.template-text').template_eval
 local keys      = require('ilk.parser').keys
 local comm      = require('ilk.common')
-local jlcomm    = require('ilk.julia.common')
-local sourcegen = require('ilk.julia.source')
-local testgen   = require('ilk.julia.test')
-local backend   = require('ilk.julia.backend-symbols')
+local jlcomm    = require('ilk.backend.julia.common')
+local sourcegen = require('ilk.backend.julia.source')
+local testgen   = require('ilk.backend.julia.test')
+local backend   = require('ilk.backend.julia.backend-symbols')
 
 
 local lfs = require('lfs')
@@ -34,13 +34,13 @@ local poseValueExpression = function(program, signature)
 end
 
 
-local function source(context, programs, config)
+local function source(context, programs, opsHandlers, codeTweakConfig)
   local funcs = {}
   for i,prog in ipairs(programs) do
     if prog.source.meta.solver_type == keys.solverKind.fk then
-      funcs[i] = sourcegen.fksource(prog, context, config)
+      funcs[i] = sourcegen.fksource(prog, context, opsHandlers, codeTweakConfig)
     else
-      funcs[i] = sourcegen.iksource(prog, context, config)
+      funcs[i] = sourcegen.iksource(prog, context, codeTweakConfig)
     end
   end
 
@@ -48,7 +48,7 @@ local function source(context, programs, config)
     date       = os.date("!%c"),
     moduleName = context.mainModule,
     backend    = context.backendModule,
-    modelConsts= sourcegen.modelConstsCTor(context, config),
+    modelConsts= sourcegen.modelConstsCTor(context, codeTweakConfig),
     funcs      = funcs
   }
   local template=
@@ -75,12 +75,11 @@ end
 end
 
 
-local function generator(ocontext, src_programs, config)
-
+local function augmentContext(oContext, sourcePrograms)
   -- Augment the context, with Julia specific context information :
   local context = {
-    outer = ocontext,
-    mainModule = ocontext.robotName,
+    outer = oContext,
+    mainModule = oContext.robotName,
     backendModule = "ILKBackend"
   }
   context.qualifiedBackendFunction=
@@ -92,9 +91,11 @@ local function generator(ocontext, src_programs, config)
       return context.qualifiedBackendFunction("matrixInit").."("..r..","..c..")"
     end
 
-  -- Also augment the program model, with Python specific stuff
+  context.opsHandlers = require("ilk.backend.julia.ops").closuresOnContext(context)
+
+  -- Also augment the program model, with Julia specific stuff
   local programs = {}
-  for i, prog in ipairs( src_programs ) do
+  for i, prog in ipairs( sourcePrograms ) do
     local sign = jlcomm.signature(prog, context)
     programs[i] = {
       source=prog,
@@ -103,10 +104,13 @@ local function generator(ocontext, src_programs, config)
     }
   end
   context.programs = programs
+  return context, programs
+end
 
 
+local function getGenerator(opsHandlers, codeTweakConfig)
 
-
+local function generator(context, programs, config)
   local testPath = config.path
   lfs.mkdir(testPath)
   local testFiles = {}
@@ -118,21 +122,16 @@ local function generator(ocontext, src_programs, config)
     fdtest:close()
   end
 
-
-  local mycfg = {
-    importBackendAs = "ILKBackend"
-  }
-
   -- Source files generation
 
   -- Main source
-  local sourcetext = source(context, programs, mycfg)
+  local sourcetext = source(context, programs, opsHandlers, codeTweakConfig)
   local fd = io.open(config.path.."/"..config.sourceFileName..".jl", "w") or io.stdout
   fd:write(sourcetext)
   fd:close()
 
   -- Test programs
-  local testsGenerator = testgen(context, mycfg)
+  local testsGenerator = testgen(context, codeTweakConfig)
   local testtext
   for i,prog in ipairs(programs) do
     local solverTestsGenerator = testsGenerator(prog)
@@ -141,10 +140,24 @@ local function generator(ocontext, src_programs, config)
       testtext = solverTestsGenerator.numericComparison(prog)
       genTestFile(prog, testtext)
     else
-      testtext = solverTestsGenerator.fkConsistency(prog, context, mycfg)
+      testtext = solverTestsGenerator.fkConsistency(prog, context, codeTweakConfig)
       genTestFile(prog, testtext)
     end
   end
 end
 
-return generator
+  return generator
+end
+
+local function getGenerators(context, sourceTweakConfig)
+  local opsHandlers = require("ilk.backend.julia.ops").closuresOnContext(context)
+  local generator = getGenerator(opsHandlers, sourceTweakConfig)
+
+  return opsHandlers, generator
+end
+
+
+return {
+  augmentContext = augmentContext,
+  getGenerators  = getGenerators
+}

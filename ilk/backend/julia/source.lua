@@ -5,11 +5,10 @@
 
 local com = require('ilk.common')
 local keys = require("ilk.parser").keys
-local langcom = require('ilk.langcommons')
 
-local backend  = require('ilk.julia.backend-symbols')
-local jlcom = require('ilk.julia.common')
-local jlops = require('ilk.julia.ops')
+local backend  = require('ilk.backend.julia.backend-symbols')
+local jlcom = require('ilk.backend.julia.common')
+local jlops = require('ilk.backend.julia.ops')
 
 
 local M = {}
@@ -35,27 +34,26 @@ M.modelConstsCTor = function(context, config)
 
   local env = {
     backend     = context.backendModule,
-    modelValues = context.outer.modelValues,
-    sort        = com.alphabPairs,
-    setOneCode  = setOneCode
+    setOneCode  = setOneCode,
+    poses       = function() return com.alphabPairs(context.outer.modelValues.poses) end
   }
 
   local template =
 [[
 struct ConstPosesContainer
-    @for k,_ in sort(modelValues) do
+    @for k,_ in poses() do
     «k»::«backend».MatrixType
     @end
 end
 
 function ConstPosesInit()
-    @for k, v in sort(modelValues) do
+    @for k, v in poses() do
     @  local one = setOneCode(k, v )
     ${one}
     @end
 
     ret = ConstPosesContainer(
-        @for k, _ in sort(modelValues) do
+        @for k, _ in poses() do
         «k»,
         @end
     )
@@ -69,22 +67,29 @@ const ModelConstants = ConstPosesInit()
 end
 
 
+local ops_handlers    = require("ilk.backend.common.ops-handlers")
+local jointTransforms = require("ilk.backend.common.joint-transforms")
 
-
-M.fksource = function(program, context, config)
-  local julia_specifics = jlops.closuresOnContext(context)
-  julia_specifics.jointTransformSetvalue = backend.jointTransformSetvalue(context.backendModule)
-
+M.fksource = function(program, context, opsHandlers, config)
+  local aux = {
+    jointTransformSetvalue = backend.jointTransformSetvalue(context.backendModule)
+  }
+  
   local env = {
       signature = program.signature.toString({declaration=false}),
-      body = langcom.code.motionSweep(program, context, julia_specifics),
+      jTransf   = jointTransforms.setJointTransforms(program, aux),
+      compiled_ops = function() return ops_handlers.translate(program, opsHandlers) end,
       returns = jlcom.returnStatement(program)
   }
   local template =
 [[
 «signature»
 
-    ${body}
+    ${jTransf}
+
+  @ for op, code in compiled_ops() do
+    ${code}
+  @ end
 
     «returns»
 end

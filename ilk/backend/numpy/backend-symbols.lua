@@ -11,10 +11,10 @@ local strbits = {
 
 RET.jointTransformSetvalue = function(backend)
   return
-  function(jointPose)
-    local func= strbits[jointPose.ilkspec.jtype] .. '__' .. strbits[jointPose.ilkspec.dir]
-    local arg1= jointPose.statusVectVarName .. '[' .. jointPose.ilkspec.coordinate+1 .. ']'
-    local arg2= jointPose.name
+  function(program, jointPoseData)
+    local func= strbits[jointPoseData.joint.kind] .. '__' .. strbits[jointPoseData.direction]
+    local arg1= jointPoseData.statusVectVarName .. '[' .. jointPoseData.joint.coordinate .. ']'
+    local arg2= jointPoseData.transformName
     return arg2.. " = " .. backend .. "." .. func .."("..arg1..")"
   end
 end
@@ -23,8 +23,8 @@ end
 
 local metat = require("ilk.common").metatypes
 RET.types = {
-  [metat.pose]       = "pose_t",
-  [metat.position3d] = "position_t",
+  [metat.pose]        = "pose_t",
+  [metat.position3d]  = "position_t",
   [metat.orient3d  ] = "rot_m_t",
   [metat.twist     ] = "twist_t",
   [metat.linVel3d  ] = "vector3_t",
@@ -48,18 +48,29 @@ RET.funcs = {
     [keys.jointType.prismatic] = "geometricJacobianColumn_prismatic",
     [keys.jointType.revolute]  = "geometricJacobianColumn_revolute"
   },
-  ct_twist="ct_twist",
-  matrixInit = "matrix"
+  ct_twist="ct_twist"
 }
 
+RET.matrixT = function(r,c)
+  if c == 1 then
+    -- for column vectors use only one dimension; numpy does _not_ treat vectors
+    -- as nx1 matrices...
+    return "np.zeros(" .. r .. ")"
+  else
+    return "np.zeros(["..r..","..c.."])"
+  end
+end
 
+RET.matrixColumn = function(mx, colIndex)
+  return mx .. "[:," .. colIndex .. "]"
+end
 
 RET.ik_pos_dbg = "ik_pos_dbg"
 RET.ik_pos_cfg = "ik_pos_cfg"
 
 RET.coordsID = {
-  location   = {x="4",y="5",z="6"},
-  orientation= {x="1",y="2",z="3"}
+  location   = {x="3",y="4",z="5"},
+  orientation= {x="0",y="1",z="2"}
 }
 RET.spatialVectorIndex = {
   [keys.jointType.prismatic] = RET.coordsID.location.z,

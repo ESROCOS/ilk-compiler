@@ -5,10 +5,10 @@
 --]]
 local keys      = require('ilk.parser').keys
 local comm      = require('ilk.common')
-local numpycomm = require('ilk.numpy.common')
-local sourcegen = require('ilk.numpy.source')
+local numpycomm = require('ilk.backend.numpy.common')
+local sourcegen = require('ilk.backend.numpy.source')
 
-local testgen = require("ilk.numpy.test")
+local testgen = require("ilk.backend.numpy.test")
 local lfs = require('lfs')
 
 
@@ -31,20 +31,24 @@ local poseValueExpression = function(program, signature)
 end
 
 
-
-
-local function generator(ocontext, src_programs, config)
-
+local function augmentContext(oContext, sourcePrograms)
   -- Augment the context, with Python/Numpy specific context information :
   local context = {
-    outer = ocontext,
-    package = ocontext.robotName,
-    mainModule = ocontext.robotName
+    outer = oContext,
+    package = oContext.robotName,
+    mainModule = oContext.robotName,
+    pybackend = {
+      package = "ilknumpy",
+      modules = {
+        core = "backend",
+        dataset = "dataset"
+      }
+    }
   }
 
   -- Also augment the program model, with Python specific stuff
   local programs = {}
-  for i, prog in ipairs( src_programs ) do
+  for i, prog in ipairs( sourcePrograms ) do
     local sign = numpycomm.signature(prog, context)
     programs[i] = {
       source=prog,
@@ -53,22 +57,14 @@ local function generator(ocontext, src_programs, config)
     }
   end
   context.programs = programs
-
-  for i, prog in ipairs(programs) do
-    if prog.source.meta.solver_type == keys.solverKind.ik.position or
-       prog.source.meta.solver_type == keys.solverKind.ik.velocity then
-      local fkid = prog.source.meta.solver_specs.fkSolverID
-      local fkSolver = comm.findProgramByID(fkid, context)
-      if fkSolver == nil then
-        numpycomm.logger.warning("Could not find the parsed model of FK solver "..fkid..
-            ", required by IK solver "..prog.source.meta.solver_id)
-      end
-      prog.fkSolver = fkSolver
-    end
-  end
+  return context, programs
+end
 
 
 
+local function getGenerator(opsHandlers, sourceTweakConfig)
+
+local function generator(context, programs, config)
   local testPath = config.path
   lfs.mkdir(testPath)
   local testFiles = {}
@@ -80,45 +76,55 @@ local function generator(ocontext, src_programs, config)
     fdtest:close()
   end
 
-
-  local mycfg = {
-    importBackendAs = "backend"
-  }
-
   -- Source files generation; main file and tests
   --
   local opath = config.path.."/"..context.package
   lfs.mkdir(opath)
   local fd = io.open(opath.."/"..config.sourceFileName..".py", "w") or io.stdout
 
-  fd:write( sourcegen.heading(context, mycfg) )
+  fd:write( sourcegen.heading(context, sourceTweakConfig) )
 
-  local testsGenerator = testgen(context, mycfg)
+
   local sourcetext
   local testtext
-  local solverTestsGenerator
   for i,prog in ipairs(programs) do
-    solverTestsGenerator = testsGenerator(prog)
     if prog.source.meta.solver_type == keys.solverKind.fk then
-
-      sourcetext = sourcegen.fksource(prog, context, mycfg)
+      sourcetext = sourcegen.fksource(prog, context, opsHandlers, sourceTweakConfig)
       fd:write(sourcetext)
-
-      testtext = solverTestsGenerator.numericComparison()
-      genTestFile(prog, testtext)
     else
-      sourcetext = sourcegen.iksource(prog, context, mycfg)
+      sourcetext = sourcegen.iksource(prog, context, sourceTweakConfig)
       fd:write(sourcetext)
-
-      testtext = solverTestsGenerator.fkConsistency()
-      genTestFile(prog, testtext)
     end
     fd:write("\n\n")
   end
   fd:close()
 
-
-
+  local testsGenerator = testgen(context, sourceTweakConfig)
+  local solverTestsGenerator
+  for i,prog in ipairs(programs) do
+    solverTestsGenerator = testsGenerator(prog)
+    if prog.source.meta.solver_type == keys.solverKind.fk then
+      testtext = solverTestsGenerator.numericComparison()
+      genTestFile(prog, testtext)
+    else
+      testtext = solverTestsGenerator.fkConsistency()
+      genTestFile(prog, testtext)
+    end
+  end
 end
 
-return generator
+  return generator
+end
+
+local function getGenerators(context, sourceTweakConfig)
+  local opsHandlers = require("ilk.backend.numpy.ops").closuresOnConfig(sourceTweakConfig)
+  local generator = getGenerator(opsHandlers, sourceTweakConfig)
+
+  return opsHandlers, generator
+end
+
+
+return {
+  augmentContext = augmentContext,
+  getGenerators  = getGenerators
+}

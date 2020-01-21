@@ -110,26 +110,28 @@ local lineCommentMatch = {
 local function singleBackendTest(code, backend, filesToCompare, inputDir, outputDir, expectedOutputDir)
   return function()
       local passed = true
-      print("\n------- Test " .. code .. ", backend: " .. backend .. "\n")
+      print("\n------- Test " .. code .. ", backend: " .. backend .. " . . .\n")
       os.execute('rm -rf '..outputDir)
       os.execute('lua ilk-compiler.lua -b ' .. backend .. ' ' ..  inputDir .. psep .. ' ' .. outputDir.. psep)
       for i, file in ipairs(filesToCompare) do
           local result = ""
           if file_exists(outputDir, file) then
               local mismatch, actual, na, expected, ne = compare_files_content(file, expectedOutputDir, outputDir, lineCommentMatch[backend])
-                  if not mismatch then
-                     result = "OK!"
-                  else
-                      result = "Mismatch found:\n" ..
+                  if mismatch then
+                      result = file .. ": Mismatch found:\n" ..
                                "ACTUAL   (line " .. na .. "):  " .. actual ..
                              "\nEXPECTED (line " .. ne .. "):  " .. expected
                       passed = false
+                      print(result .. "\n")
                   end
           else
-              result = "FILE DOES NOT EXIST!"
+              result = file .. " DOES NOT EXIST!"
               passed = false
+              print(result .. "\n")
           end
-          print(file .. ": " .. result .. "\n")
+      end
+      if passed then
+        print(". . . passed!\n")
       end
       return passed
   end

@@ -2,6 +2,14 @@ return {
     solverid = 'fk__ik1',
     solver_type = 'forward',
     robot_name = 'ur5',
+    joints = {
+        shoulder_pan = { kind='revolute', coordinate=0 },
+        shoulder_lift = { kind='revolute', coordinate=1 },
+        elbow = { kind='revolute', coordinate=2 },
+        wr1 = { kind='revolute', coordinate=3 },
+        wr2 = { kind='revolute', coordinate=4 },
+        wr3 = { kind='revolute', coordinate=5 }
+    },
 
     -- Model poses
     poses = {
@@ -28,13 +36,13 @@ return {
         { op='pose-compose', arg1='fr_wr3__fr_wr2', arg2='fr_wr2__fr_base', res='fr_wr3__fr_base' },
         { op='pose-compose', arg1='fr_wrist_3__fr_wr3', arg2='fr_wr3__fr_base', res='fr_wrist_3__fr_base' }
         ,
-        { op='geom-jacobian', name='J_fr_wrist_3_fr_base', pose='fr_wrist_3__fr_base' }
-,        { op='GJac-col', jtype='revolute', jac='J_fr_wrist_3_fr_base', col=0, joint_pose='fr_shoulder_pan__fr_base' },
-        { op='GJac-col', jtype='revolute', jac='J_fr_wrist_3_fr_base', col=1, joint_pose='fr_shoulder_lift__fr_base' },
-        { op='GJac-col', jtype='revolute', jac='J_fr_wrist_3_fr_base', col=2, joint_pose='fr_elbow__fr_base' },
-        { op='GJac-col', jtype='revolute', jac='J_fr_wrist_3_fr_base', col=3, joint_pose='fr_wr1__fr_base' },
-        { op='GJac-col', jtype='revolute', jac='J_fr_wrist_3_fr_base', col=4, joint_pose='fr_wr2__fr_base' },
-        { op='GJac-col', jtype='revolute', jac='J_fr_wrist_3_fr_base', col=5, joint_pose='fr_wr3__fr_base' }
+        { op='geom-jacobian', name='J_fr_wrist_3_fr_base', pose='fr_wrist_3__fr_base' },
+        { op='GJac-col', joint='shoulder_pan', jac='J_fr_wrist_3_fr_base', col=0, joint_pose='fr_shoulder_pan__fr_base' },
+        { op='GJac-col', joint='shoulder_lift', jac='J_fr_wrist_3_fr_base', col=1, joint_pose='fr_shoulder_lift__fr_base' },
+        { op='GJac-col', joint='elbow', jac='J_fr_wrist_3_fr_base', col=2, joint_pose='fr_elbow__fr_base' },
+        { op='GJac-col', joint='wr1', jac='J_fr_wrist_3_fr_base', col=3, joint_pose='fr_wr1__fr_base' },
+        { op='GJac-col', joint='wr2', jac='J_fr_wrist_3_fr_base', col=4, joint_pose='fr_wr2__fr_base' },
+        { op='GJac-col', joint='wr3', jac='J_fr_wrist_3_fr_base', col=5, joint_pose='fr_wr3__fr_base' }
     },
 
     -- Outputs (user's request)

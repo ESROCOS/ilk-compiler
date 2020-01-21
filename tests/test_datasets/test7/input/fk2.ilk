@@ -2,6 +2,14 @@ return {
     solverid = 'fk2',
     solver_type = 'forward',
     robot_name = 'ur5',
+    joints = {
+        shoulder_pan = { kind='revolute', coordinate=0 },
+        shoulder_lift = { kind='revolute', coordinate=1 },
+        elbow = { kind='revolute', coordinate=2 },
+        wr1 = { kind='revolute', coordinate=3 },
+        wr2 = { kind='revolute', coordinate=4 },
+        wr3 = { kind='revolute', coordinate=5 }
+    },
 
     -- Model poses
     poses = {

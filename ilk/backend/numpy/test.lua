@@ -1,10 +1,9 @@
 local tpl    = require("ilk.template-text").template_eval
 local keys   = require('ilk.parser').keys
 local common = require('ilk.common')
-local langcom= require('ilk.langcommons')
-local testcom= require('ilk.langcommons_test')
-local npcom  = require('ilk.numpy.common')
-local backend= require('ilk.numpy.backend-symbols')
+local testcom= require('ilk.backend.common.test')
+local npcom  = require('ilk.backend.numpy.common')
+local backend= require('ilk.backend.numpy.backend-symbols')
 
 
 local FKDatasetComparisonTest = function(program, context, env)

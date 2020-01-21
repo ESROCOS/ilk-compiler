@@ -1,10 +1,9 @@
 local tpl    = require("ilk.template-text").template_eval
 local keys   = require('ilk.parser').keys
 local common = require('ilk.common')
-local langcom= require('ilk.langcommons')
-local testcom= require('ilk.langcommons_test')
-local lang   = require('ilk.julia.common')
-local backend= require('ilk.julia.backend-symbols')
+local testcom= require('ilk.backend.common.test')
+local lang   = require('ilk.backend.julia.common')
+local backend= require('ilk.backend.julia.backend-symbols')
 
 
 local FKDatasetComparisonTest = function(program, context, env)
