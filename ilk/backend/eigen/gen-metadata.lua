@@ -2,7 +2,7 @@ local keys = require("ilk.parser").keys
 local backend_symbols = require('ilk.backend.eigen.backend-symbols')
 local metat = require("ilk.common").metatypes
 local common = require('ilk.backend.eigen.common')
-local yaml = require('yaml')
+local yaml = require('lyaml')
 
 local eigen = require("ilk.backend.eigen.common")
 
