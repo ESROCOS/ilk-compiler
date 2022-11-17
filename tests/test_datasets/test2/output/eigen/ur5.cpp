@@ -11,70 +11,70 @@ using namespace kul;
 ur5::ModelConstants::ModelConstants()
 {
     elbow__upperarm.setIdentity();
-    eg_set_position(elbow__upperarm,0.425,0,-0.1197);
-    eg_set_rotation(elbow__upperarm,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1);
+    eg_set_position(elbow__upperarm,0.425,0.0,-0.1197);
+    eg_set_rotation(elbow__upperarm,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0);
 
     forearm__wr1.setIdentity();
-    eg_set_position(forearm__wr1,-0.39225,0,-0.09315);
-    eg_set_rotation(forearm__wr1,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1);
+    eg_set_position(forearm__wr1,-0.39225,0.0,-0.09315);
+    eg_set_rotation(forearm__wr1,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0);
 
     shoulder__shoulder_lift.setIdentity();
-    eg_set_position(shoulder__shoulder_lift,0,0,-0.13585);
-    eg_set_rotation(shoulder__shoulder_lift,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0);
+    eg_set_position(shoulder__shoulder_lift,0.0,0.0,-0.13585);
+    eg_set_rotation(shoulder__shoulder_lift,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0);
 
     shoulder_lift__shoulder.setIdentity();
-    eg_set_position(shoulder_lift__shoulder,0.13585,0,0);
-    eg_set_rotation(shoulder_lift__shoulder,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0);
+    eg_set_position(shoulder_lift__shoulder,0.13585,0.0,0.0);
+    eg_set_rotation(shoulder_lift__shoulder,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0);
 
     shoulder_pan__base.setIdentity();
-    eg_set_position(shoulder_pan__base,0,0,0.089159);
-    eg_set_rotation(shoulder_pan__base,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1);
+    eg_set_position(shoulder_pan__base,0.0,0.0,0.089159);
+    eg_set_rotation(shoulder_pan__base,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0);
 
     upperarm__elbow.setIdentity();
-    eg_set_position(upperarm__elbow,-0.425,0,0.1197);
-    eg_set_rotation(upperarm__elbow,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1);
+    eg_set_position(upperarm__elbow,-0.425,0.0,0.1197);
+    eg_set_rotation(upperarm__elbow,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0);
 
     wr1__forearm.setIdentity();
-    eg_set_position(wr1__forearm,0.39225,0,0.09315);
-    eg_set_rotation(wr1__forearm,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1);
+    eg_set_position(wr1__forearm,0.39225,0.0,0.09315);
+    eg_set_rotation(wr1__forearm,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0);
 
     wr2__wrist_1.setIdentity();
-    eg_set_position(wr2__wrist_1,0.09475,0,0);
-    eg_set_rotation(wr2__wrist_1,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0);
+    eg_set_position(wr2__wrist_1,0.09475,0.0,0.0);
+    eg_set_rotation(wr2__wrist_1,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0);
 
     wr3__wrist_2.setIdentity();
-    eg_set_position(wr3__wrist_2,0.0825,0,0);
-    eg_set_rotation(wr3__wrist_2,-0,0,1,
-                                 0,1,0,
-                                 -1,0,-0);
+    eg_set_position(wr3__wrist_2,0.0825,0.0,0.0);
+    eg_set_rotation(wr3__wrist_2,-0.0,0.0,1.0,
+                                 0.0,1.0,0.0,
+                                 -1.0,0.0,-0.0);
 
     wrist_1__wr2.setIdentity();
-    eg_set_position(wrist_1__wr2,0,0,-0.09475);
-    eg_set_rotation(wrist_1__wr2,0,0,1,
-                                 0,-1,0,
-                                 1,0,0);
+    eg_set_position(wrist_1__wr2,0.0,0.0,-0.09475);
+    eg_set_rotation(wrist_1__wr2,0.0,0.0,1.0,
+                                 0.0,-1.0,0.0,
+                                 1.0,0.0,0.0);
 
     wrist_2__wr3.setIdentity();
-    eg_set_position(wrist_2__wr3,0,0,-0.0825);
-    eg_set_rotation(wrist_2__wr3,0,0,-1,
-                                 0,1,0,
-                                 1,0,-0);
+    eg_set_position(wrist_2__wr3,0.0,0.0,-0.0825);
+    eg_set_rotation(wrist_2__wr3,0.0,0.0,-1.0,
+                                 0.0,1.0,0.0,
+                                 1.0,0.0,-0.0);
 
 }
 

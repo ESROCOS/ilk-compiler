@@ -11,27 +11,27 @@ ur5::ModelConstants::ModelConstants()
 {
     camera__fr_link2.setIdentity();
     eg_set_position(camera__fr_link2,0.1,0.2,0.3);
-    eg_set_rotation(camera__fr_link2,-0,-1,0,
-                                 1,-0,-0,
-                                 0,0,1);
+    eg_set_rotation(camera__fr_link2,-0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0,
+                                 0.0,0.0,1.0);
 
     fr_link1__fr_jB.setIdentity();
-    eg_set_position(fr_link1__fr_jB,-1,0,-0);
-    eg_set_rotation(fr_link1__fr_jB,1,-0,0,
-                                 -0,-0,-1,
-                                 0,1,-0);
+    eg_set_position(fr_link1__fr_jB,-1.0,0.0,-0.0);
+    eg_set_rotation(fr_link1__fr_jB,1.0,-0.0,0.0,
+                                 -0.0,-0.0,-1.0,
+                                 0.0,1.0,-0.0);
 
     fr_link2__fr_jC.setIdentity();
-    eg_set_position(fr_link2__fr_jC,-0,-0,-1);
-    eg_set_rotation(fr_link2__fr_jC,1,0,0,
-                                 -0,1,0,
-                                 0,-0,1);
+    eg_set_position(fr_link2__fr_jC,-0.0,-0.0,-1.0);
+    eg_set_rotation(fr_link2__fr_jC,1.0,0.0,0.0,
+                                 -0.0,1.0,0.0,
+                                 0.0,-0.0,1.0);
 
     fr_link3__fr_jD.setIdentity();
-    eg_set_position(fr_link3__fr_jD,-1,-0,-0);
-    eg_set_rotation(fr_link3__fr_jD,1,0,0,
-                                 -0,-0,1,
-                                 0,-1,-0);
+    eg_set_position(fr_link3__fr_jD,-1.0,-0.0,-0.0);
+    eg_set_rotation(fr_link3__fr_jD,1.0,0.0,0.0,
+                                 -0.0,-0.0,1.0,
+                                 0.0,-1.0,-0.0);
 
 }
 

@@ -11,40 +11,40 @@ using namespace kul;
 ur5::ModelConstants::ModelConstants()
 {
     fr_elbow__fr_upper_arm.setIdentity();
-    eg_set_position(fr_elbow__fr_upper_arm,0.425,0,-0.1197);
-    eg_set_rotation(fr_elbow__fr_upper_arm,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1);
+    eg_set_position(fr_elbow__fr_upper_arm,0.425,0.0,-0.1197);
+    eg_set_rotation(fr_elbow__fr_upper_arm,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0);
 
     fr_shoulder_lift__fr_shoulder.setIdentity();
-    eg_set_position(fr_shoulder_lift__fr_shoulder,0.13585,0,0);
-    eg_set_rotation(fr_shoulder_lift__fr_shoulder,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0);
+    eg_set_position(fr_shoulder_lift__fr_shoulder,0.13585,0.0,0.0);
+    eg_set_rotation(fr_shoulder_lift__fr_shoulder,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0);
 
     fr_shoulder_pan__fr_base.setIdentity();
-    eg_set_position(fr_shoulder_pan__fr_base,0,0,0.089159);
-    eg_set_rotation(fr_shoulder_pan__fr_base,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1);
+    eg_set_position(fr_shoulder_pan__fr_base,0.0,0.0,0.089159);
+    eg_set_rotation(fr_shoulder_pan__fr_base,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0);
 
     fr_wr1__fr_forearm.setIdentity();
-    eg_set_position(fr_wr1__fr_forearm,0.39225,0,0.09315);
-    eg_set_rotation(fr_wr1__fr_forearm,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1);
+    eg_set_position(fr_wr1__fr_forearm,0.39225,0.0,0.09315);
+    eg_set_rotation(fr_wr1__fr_forearm,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0);
 
     fr_wr2__fr_wrist_1.setIdentity();
-    eg_set_position(fr_wr2__fr_wrist_1,0.09475,0,0);
-    eg_set_rotation(fr_wr2__fr_wrist_1,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0);
+    eg_set_position(fr_wr2__fr_wrist_1,0.09475,0.0,0.0);
+    eg_set_rotation(fr_wr2__fr_wrist_1,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0);
 
     fr_wr3__fr_wrist_2.setIdentity();
-    eg_set_position(fr_wr3__fr_wrist_2,0.0825,0,0);
-    eg_set_rotation(fr_wr3__fr_wrist_2,-0,0,1,
-                                 0,1,0,
-                                 -1,0,-0);
+    eg_set_position(fr_wr3__fr_wrist_2,0.0825,0.0,0.0);
+    eg_set_rotation(fr_wr3__fr_wrist_2,-0.0,0.0,1.0,
+                                 0.0,1.0,0.0,
+                                 -1.0,0.0,-0.0);
 
 }
 

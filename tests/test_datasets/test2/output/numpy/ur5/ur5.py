@@ -9,70 +9,70 @@ from ilknumpy import backend as backend
 
 def ModelConstants():
     elbow__upperarm = backend.pose()
-    backend.setPosition(elbow__upperarm,0.425,0,-0.1197)
-    backend.setRotation(elbow__upperarm,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1)
+    backend.setPosition(elbow__upperarm,0.425,0.0,-0.1197)
+    backend.setRotation(elbow__upperarm,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0)
 
     forearm__wr1 = backend.pose()
-    backend.setPosition(forearm__wr1,-0.39225,0,-0.09315)
-    backend.setRotation(forearm__wr1,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1)
+    backend.setPosition(forearm__wr1,-0.39225,0.0,-0.09315)
+    backend.setRotation(forearm__wr1,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0)
 
     shoulder__shoulder_lift = backend.pose()
-    backend.setPosition(shoulder__shoulder_lift,0,0,-0.13585)
-    backend.setRotation(shoulder__shoulder_lift,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0)
+    backend.setPosition(shoulder__shoulder_lift,0.0,0.0,-0.13585)
+    backend.setRotation(shoulder__shoulder_lift,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0)
 
     shoulder_lift__shoulder = backend.pose()
-    backend.setPosition(shoulder_lift__shoulder,0.13585,0,0)
-    backend.setRotation(shoulder_lift__shoulder,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0)
+    backend.setPosition(shoulder_lift__shoulder,0.13585,0.0,0.0)
+    backend.setRotation(shoulder_lift__shoulder,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0)
 
     shoulder_pan__base = backend.pose()
-    backend.setPosition(shoulder_pan__base,0,0,0.089159)
-    backend.setRotation(shoulder_pan__base,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1)
+    backend.setPosition(shoulder_pan__base,0.0,0.0,0.089159)
+    backend.setRotation(shoulder_pan__base,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0)
 
     upperarm__elbow = backend.pose()
-    backend.setPosition(upperarm__elbow,-0.425,0,0.1197)
-    backend.setRotation(upperarm__elbow,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1)
+    backend.setPosition(upperarm__elbow,-0.425,0.0,0.1197)
+    backend.setRotation(upperarm__elbow,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0)
 
     wr1__forearm = backend.pose()
-    backend.setPosition(wr1__forearm,0.39225,0,0.09315)
-    backend.setRotation(wr1__forearm,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1)
+    backend.setPosition(wr1__forearm,0.39225,0.0,0.09315)
+    backend.setRotation(wr1__forearm,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0)
 
     wr2__wrist_1 = backend.pose()
-    backend.setPosition(wr2__wrist_1,0.09475,0,0)
-    backend.setRotation(wr2__wrist_1,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0)
+    backend.setPosition(wr2__wrist_1,0.09475,0.0,0.0)
+    backend.setRotation(wr2__wrist_1,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0)
 
     wr3__wrist_2 = backend.pose()
-    backend.setPosition(wr3__wrist_2,0.0825,0,0)
-    backend.setRotation(wr3__wrist_2,-0,0,1,
-                                 0,1,0,
-                                 -1,0,-0)
+    backend.setPosition(wr3__wrist_2,0.0825,0.0,0.0)
+    backend.setRotation(wr3__wrist_2,-0.0,0.0,1.0,
+                                 0.0,1.0,0.0,
+                                 -1.0,0.0,-0.0)
 
     wrist_1__wr2 = backend.pose()
-    backend.setPosition(wrist_1__wr2,0,0,-0.09475)
-    backend.setRotation(wrist_1__wr2,0,0,1,
-                                 0,-1,0,
-                                 1,0,0)
+    backend.setPosition(wrist_1__wr2,0.0,0.0,-0.09475)
+    backend.setRotation(wrist_1__wr2,0.0,0.0,1.0,
+                                 0.0,-1.0,0.0,
+                                 1.0,0.0,0.0)
 
     wrist_2__wr3 = backend.pose()
-    backend.setPosition(wrist_2__wr3,0,0,-0.0825)
-    backend.setRotation(wrist_2__wr3,0,0,-1,
-                                 0,1,0,
-                                 1,0,-0)
+    backend.setPosition(wrist_2__wr3,0.0,0.0,-0.0825)
+    backend.setRotation(wrist_2__wr3,0.0,0.0,-1.0,
+                                 0.0,1.0,0.0,
+                                 1.0,0.0,-0.0)
 
 
     mc_config = namedtuple('mc', [
