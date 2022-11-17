@@ -7,40 +7,40 @@ from ilknumpy import backend as backend
 
 def ModelConstants():
     fr_elbow__fr_upper_arm = backend.pose()
-    backend.setPosition(fr_elbow__fr_upper_arm,0.425,0,-0.1197)
-    backend.setRotation(fr_elbow__fr_upper_arm,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1)
+    backend.setPosition(fr_elbow__fr_upper_arm,0.425,0.0,-0.1197)
+    backend.setRotation(fr_elbow__fr_upper_arm,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0)
 
     fr_shoulder_lift__fr_shoulder = backend.pose()
-    backend.setPosition(fr_shoulder_lift__fr_shoulder,0.13585,0,0)
-    backend.setRotation(fr_shoulder_lift__fr_shoulder,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0)
+    backend.setPosition(fr_shoulder_lift__fr_shoulder,0.13585,0.0,0.0)
+    backend.setRotation(fr_shoulder_lift__fr_shoulder,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0)
 
     fr_shoulder_pan__fr_base = backend.pose()
-    backend.setPosition(fr_shoulder_pan__fr_base,0,0,0.089159)
-    backend.setRotation(fr_shoulder_pan__fr_base,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1)
+    backend.setPosition(fr_shoulder_pan__fr_base,0.0,0.0,0.089159)
+    backend.setRotation(fr_shoulder_pan__fr_base,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0)
 
     fr_wr1__fr_forearm = backend.pose()
-    backend.setPosition(fr_wr1__fr_forearm,0.39225,0,0.09315)
-    backend.setRotation(fr_wr1__fr_forearm,1,-0,0,
-                                 0,1,-0,
-                                 0,0,1)
+    backend.setPosition(fr_wr1__fr_forearm,0.39225,0.0,0.09315)
+    backend.setRotation(fr_wr1__fr_forearm,1.0,-0.0,0.0,
+                                 0.0,1.0,-0.0,
+                                 0.0,0.0,1.0)
 
     fr_wr2__fr_wrist_1 = backend.pose()
-    backend.setPosition(fr_wr2__fr_wrist_1,0.09475,0,0)
-    backend.setRotation(fr_wr2__fr_wrist_1,0,-0,1,
-                                 -0,-1,0,
-                                 1,-0,-0)
+    backend.setPosition(fr_wr2__fr_wrist_1,0.09475,0.0,0.0)
+    backend.setRotation(fr_wr2__fr_wrist_1,0.0,-0.0,1.0,
+                                 -0.0,-1.0,0.0,
+                                 1.0,-0.0,-0.0)
 
     fr_wr3__fr_wrist_2 = backend.pose()
-    backend.setPosition(fr_wr3__fr_wrist_2,0.0825,0,0)
-    backend.setRotation(fr_wr3__fr_wrist_2,-0,0,1,
-                                 0,1,0,
-                                 -1,0,-0)
+    backend.setPosition(fr_wr3__fr_wrist_2,0.0825,0.0,0.0)
+    backend.setRotation(fr_wr3__fr_wrist_2,-0.0,0.0,1.0,
+                                 0.0,1.0,0.0,
+                                 -1.0,0.0,-0.0)
 
 
     mc_config = namedtuple('mc', [
