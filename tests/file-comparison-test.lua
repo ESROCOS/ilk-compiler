@@ -118,6 +118,10 @@ local function singleBackendTest(code, backend, filesToCompare, inputDir, output
           if file_exists(outputDir, file) then
               local mismatch, actual, na, expected, ne = compare_files_content(file, expectedOutputDir, outputDir, lineCommentMatch[backend])
                   if mismatch then
+                      if actual == nil then
+                          na = "X"
+                          actual = "[missing]"
+                      end
                       result = file .. ": Mismatch found:\n" ..
                                "ACTUAL   (line " .. na .. "):  " .. actual ..
                              "\nEXPECTED (line " .. ne .. "):  " .. expected
