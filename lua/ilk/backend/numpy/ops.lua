@@ -39,7 +39,7 @@ local jacColTemplate = {
 M.geometricJacobianInit = function(program, op, config)
   local bend = config.importBackendAs
   return {
-    [1] = op.name .. " = " ..bend.. "." ..backend.matrixT(6, program.source.meta.joint_space_size),
+    [1] = op.name .. " = " ..bend.. "." ..backend.matrixT(6, op.columns),
     [2] = "poi_"..op.name.." = "..bend.."."..backend.funcs.posView.."("..program.poseValueExpression(op.pose)..")"
   }
 end
