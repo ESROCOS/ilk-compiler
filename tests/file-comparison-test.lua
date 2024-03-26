@@ -112,7 +112,7 @@ local function singleBackendTest(code, backend, filesToCompare, inputDir, output
       local passed = true
       print("\n------- Test " .. code .. ", backend: " .. backend .. " . . .\n")
       os.execute('rm -rf '..outputDir)
-      os.execute('lua ilk-compiler.lua -b ' .. backend .. ' ' ..  inputDir .. psep .. ' ' .. outputDir.. psep)
+      os.execute('cd lua/ && ./ilk-compiler.lua -b ' .. backend .. ' ' ..  inputDir .. psep .. ' ' .. outputDir.. psep)
       for i, file in ipairs(filesToCompare) do
           local result = ""
           if file_exists(outputDir, file) then

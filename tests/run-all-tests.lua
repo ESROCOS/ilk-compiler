@@ -1,9 +1,13 @@
 local tests = {}
+local lfs = require('lfs')
 local creator = require('tests.file-comparison-test')
 local creator2 = require('tests.error-expectation-test')
 local psep = package.config:sub(1, 1) -- the path separator for the current OS
 
-local basePath = "tests"..psep.."test_datasets"..psep
+
+
+local currentDir = lfs.currentdir() -- this one will be an absolute path
+local basePath = currentDir..psep.."tests"..psep.."test_datasets"..psep
 local function testDirs(testNum)
   local testDir  = "test"..testNum..psep
   return {
