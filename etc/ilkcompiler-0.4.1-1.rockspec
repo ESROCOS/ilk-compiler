@@ -1,5 +1,5 @@
 package = "ilkcompiler"
-version = "0.4.0-1"
+version = "0.4.1-1"
 source = {
   url    = "git@github.com:ESROCOS/ilk-compiler.git",
   branch = "master"
@@ -22,4 +22,8 @@ dependencies = {
 }
 build = {
   type = "builtin",
+  modules = {}, -- everything in the "lua/" folder is picked by default
+  install = {
+    bin = {"lua/ilk-compiler.lua"}
+  },
 }
