@@ -1,0 +1,17 @@
+[project]
+
+name        = "ilknumpy"
+version     = "0.1.0"
+description = "NumPy backend for the ILK compiler"
+authors     = [
+    { name = "Marco Frigerio" }
+]
+
+requires-python = ">=3.4"
+
+dependencies = [
+    "numpy",
+]
+
+
+

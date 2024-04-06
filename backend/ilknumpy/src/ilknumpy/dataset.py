@@ -1,6 +1,6 @@
 import math, sys, struct
 import numpy as np
-from . import backend as utils
+from ilknumpy import backend as utils
 
 
 
