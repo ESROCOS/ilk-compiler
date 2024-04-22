@@ -41,7 +41,12 @@ local argumentFromMeta = function(program, metaArgument)
   return nil
 end
 
-
+--- Maps a type to the corresponding input argument of the given program
+-- @param program the program descriptor as returned by `augmentContext` of some
+--   backend
+-- @param type the type object (see `common.metatypes`)
+-- @return the input argument of the given type, among those listed in the
+--  program's signature
 local inputArgumentByType = function(program, type)
   local i, meta_arg = program.source.metasignature.inputByType( type )
   if i ~= nil then

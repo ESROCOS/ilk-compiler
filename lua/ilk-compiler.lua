@@ -60,6 +60,15 @@ local parseInputs = function(ilkSources, model_values)
   -- TODO check everything refers to the same robot, and it is consistent
   -- (e.g. same joint space size for each program)
 
+  --- The context data associated with a run of the ilk-compiler
+  -- @table context
+  -- @field robotName name of the robot model as appearing in the first ILK
+  --   source program
+  -- @field jointSpaceSize the size of the robot's joint space, also determined
+  --   from the metadata of the first ILK source program
+  -- @field modelValues the robot model constants, as given to the `parseInputs`
+  --   function
+  -- @field programs the list of parsed programs, one for each ILK source program
   local context = {
       robotName   = programs[1].meta.robot_name,
       jointSpaceSize = programs[1].meta.joint_space_size,
