@@ -29,6 +29,8 @@ local function getBackend(backendName, config)
   elseif backendName == 'numpy' then
       backend = require('ilk.backend.numpy')
       genConfig.codeTweaks.importBackendAs = "backend"
+  elseif backendName == 'octave' then
+      backend = require('ilk.backend.octave')
   else
     error("Unknown backend '"..backendName.."'")
   end
