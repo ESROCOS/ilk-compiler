@@ -204,7 +204,7 @@ local fail = function()
   error("Errors encountered; check the log for details")
 end
 
-local tpl = require('ilk.template-text').template_eval
+local tpl = require('template-text').template_eval
 M.tplEval_failOnError = function(template, env, opts)
   local ok,code = tpl(template, env, opts or {})
   if not ok then

@@ -3,7 +3,7 @@
    License: BSD 2-clause
 --]]
 
-local tpl = require('ilk.template-text').template_eval
+local tpl = require('template-text').template_eval
 local com = require('ilk.common')
 local keys = require("ilk.parser").keys
 

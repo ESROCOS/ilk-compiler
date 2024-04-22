@@ -3,7 +3,6 @@
    2018, KU Leuven, Belgium
    License: BSD 2-clause
 --]]
-local tpl       = require('ilk.template-text').template_eval
 local keys      = require('ilk.parser').keys
 local comm      = require('ilk.common')
 local jlcomm    = require('ilk.backend.julia.common')

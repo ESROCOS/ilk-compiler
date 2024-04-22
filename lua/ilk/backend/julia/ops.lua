@@ -1,4 +1,4 @@
-local tpl     = require('ilk.template-text').template_eval
+local tpl     = require('template-text').template_eval
 local backend = require('ilk.backend.julia.backend-symbols')
 local jlcom   = require('ilk.backend.julia.common')
 local com     = require('ilk.common')

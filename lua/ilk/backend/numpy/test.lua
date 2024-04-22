@@ -1,4 +1,4 @@
-local tpl    = require("ilk.template-text").template_eval
+local tpl    = require("template-text").template_eval
 local keys   = require('ilk.parser').keys
 local common = require('ilk.common')
 local testcom= require('ilk.backend.common.test')

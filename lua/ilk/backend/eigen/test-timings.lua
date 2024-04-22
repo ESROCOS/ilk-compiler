@@ -1,4 +1,4 @@
-local tpl    = require("ilk.template-text").template_eval
+local tpl    = require("template-text").template_eval
 local common = require('ilk.common')
 local cppcom = require('ilk.backend.eigen.common')
 local testcom= require("ilk.backend.eigen.test")

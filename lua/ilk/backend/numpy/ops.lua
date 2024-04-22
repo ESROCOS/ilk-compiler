@@ -1,4 +1,4 @@
-local tpl     = require('ilk.template-text').template_eval
+local tpl     = require('template-text').template_eval
 local backend = require('ilk.backend.numpy.backend-symbols')
 local pycom   = require('ilk.backend.numpy.common')
 local com     = require('ilk.common')

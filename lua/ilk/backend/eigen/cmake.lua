@@ -1,4 +1,4 @@
-local tpl = require('ilk.template-text')
+local tpl = require('template-text')
 
 local template = [[
 cmake_minimum_required(VERSION 3.5)

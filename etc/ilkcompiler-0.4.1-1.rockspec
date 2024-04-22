@@ -18,7 +18,8 @@ dependencies = {
   "luafilesystem",
   "lyaml",
   "lua_cliargs",
-  "lua-log"
+  "lua-log",
+  "template-text >= 0.1.1",
 }
 build = {
   type = "builtin",

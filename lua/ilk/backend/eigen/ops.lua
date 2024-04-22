@@ -1,4 +1,4 @@
-local tpl     = require('ilk.template-text').template_eval
+local tpl     = require('template-text').template_eval
 local backend = require('ilk.backend.eigen.backend-symbols')
 local cppcom  = require('ilk.backend.eigen.common')
 local com     = require('ilk.common')

@@ -1,5 +1,5 @@
 local backend = require("ilk.backend.eigen.backend-symbols")
-local tpl     = require("ilk.template-text").template_eval
+local tpl     = require("template-text").template_eval
 
 local logger = require('log').new(
   "trace",
