@@ -63,7 +63,7 @@ end
 
 local function translatedOpsIterator(program, backend)
   local hh  = ops_handlers(program, backend)
-  local ops = program.source.ops
+  local ops = program.source.ops or {} -- a program may have no operations if it is purely declarative
   local i = 0
   return function()
     i = i + 1
