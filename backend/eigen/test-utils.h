@@ -11,11 +11,25 @@ namespace kul
 {
 
 /**
- * Trivial wrapper of a text dataset.
+ * Trivial wrapper of a test dataset in text format.
  *
- * The expected format is one data item on each line, with space-separated
- * values. For example, a 6 dimensional vector must be stored as 6 numbers
- * separated by space, on the same line.
+ * A test dataset contains the coefficients of an homogeneous transformation
+ * matrix for different values of the variables/parameters the matrix depends
+ * on.
+ *
+ * The expected format of the underlying data file is one entry on each
+ * line, with space-separated values.
+ * Each entry shall contain a value for each variable/parameter the matrix
+ * depends on, but there are no constraints here about the ordering nor the
+ * count of these values. This is because this class provides a generic
+ * 'readVector' to read N values, and it is the user's task to call it correctly
+ * depending on the actual format of the dataset.
+ *
+ * On the other hand, the homogeneous matrix coefficients MUST be stored with
+ * the following layout: first the three elements of the position
+ * vector, than the nine elements of the rotation matrix, row wise.
+ * These coefficients MUST be stored _after_ the values for the
+ * variables/parameters.
  *
  */
 class TextDataset
@@ -45,7 +59,7 @@ public:
     {
         readLine();
         for(unsigned int c=0; c<count; c++) {
-            reader >> out(c);
+            line_parser >> out(c);
         }
     }
 
@@ -53,9 +67,16 @@ private:
     void readLine();
 
     std::ifstream source;
-    std::istringstream reader;
+    std::istringstream line_parser;
+    bool fresh_line{false};
 };
 
+/**
+ * A wrapper for a test dataset in binary format.
+ * For the general, expected data format see `TextDataset`. Every value must be
+ * encoded as a 4-byte float in machine's endianess. There are no separators
+ * between subsequent entries.
+ */
 class NaiveBinDataset
 {
 public:
