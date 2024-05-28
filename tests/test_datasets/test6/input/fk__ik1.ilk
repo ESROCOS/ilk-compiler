@@ -36,7 +36,7 @@ return {
         { op='pose-compose', arg1='fr_wr3__fr_wr2', arg2='fr_wr2__fr_base', res='fr_wr3__fr_base' },
         { op='pose-compose', arg1='fr_wrist_3__fr_wr3', arg2='fr_wr3__fr_base', res='fr_wrist_3__fr_base' }
         ,
-        { op='geom-jacobian', name='J_fr_wrist_3_fr_base', pose='fr_wrist_3__fr_base' },
+        { op='geom-jacobian', name='J_fr_wrist_3_fr_base', pose='fr_wrist_3__fr_base', columns=6 },
         { op='GJac-col', joint='shoulder_pan' , jac='J_fr_wrist_3_fr_base', col=0, joint_pose='fr_shoulder_pan__fr_base' },
         { op='GJac-col', joint='shoulder_lift', jac='J_fr_wrist_3_fr_base', col=1, joint_pose='fr_shoulder_lift__fr_base' },
         { op='GJac-col', joint='elbow'        , jac='J_fr_wrist_3_fr_base', col=2, joint_pose='fr_elbow__fr_base' },

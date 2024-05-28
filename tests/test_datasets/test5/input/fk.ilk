@@ -43,8 +43,8 @@ return {
 
 
     -- Jacobians "declarations" for subsequent reference (user's request)
-    { op='geom-jacobian', name='J_fr_wrist_3_fr_base', pose='fr_wrist_3__fr_base' },
-    { op='geom-jacobian', name='J_fr_wrist_3_fr_elbow', pose='fr_wrist_3__fr_elbow' },
+    { op='geom-jacobian', name='J_fr_wrist_3_fr_base', pose='fr_wrist_3__fr_base', columns=6 },
+    { op='geom-jacobian', name='J_fr_wrist_3_fr_elbow', pose='fr_wrist_3__fr_elbow', columns=2 },
     -- Jacobians algorithm
     { op='GJac-col', col=0, joint='shoulder_pan', jac='J_fr_wrist_3_fr_base',  joint_pose='fr_shoulder_pan__fr_base' },
     { op='GJac-col', col=1, joint='shoulder_lift', jac='J_fr_wrist_3_fr_base',  joint_pose='fr_shoulder_lift__fr_base' },

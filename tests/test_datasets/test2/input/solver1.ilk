@@ -77,7 +77,7 @@ return {
     ,
 
 
-        { op='geom-jacobian', name='J_wrist_3_base', pose='wrist_3__base' },
+        { op='geom-jacobian', name='J_wrist_3_base', pose='wrist_3__base', columns=6 },
         { op='GJac-col', joint='shoulder_pan' , jac='J_wrist_3_base', col=0, joint_pose='shoulder_pan__base', polarity=1 },
         { op='GJac-col', joint='shoulder_lift', jac='J_wrist_3_base', col=1, joint_pose='shoulder_lift__base', polarity=1 },
         { op='GJac-col', joint='elbow'        , jac='J_wrist_3_base', col=2, joint_pose='elbow__base', polarity=1 },

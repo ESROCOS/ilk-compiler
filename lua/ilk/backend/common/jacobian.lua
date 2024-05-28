@@ -3,6 +3,10 @@ local langcommons = require("ilk.backend.common.common")
 
 
 local geometricJacobian = function(program, op, lang)
+  if not op.columns then
+    langcommons.logger.error("Geometric Jacobian opcode lacks the 'columns' field (for Jacobian '" .. op.name .. "')")
+    langcommons.fail()
+  end
   return lang.geometricJacobianInit(program, op)
 end
 
