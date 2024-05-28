@@ -200,16 +200,12 @@ M.operationsByKey = function(program, opkey)
 end
 
 
-local fail = function()
-  error("Errors encountered; check the log for details")
-end
-
 local tpl = require('template-text').template_eval
 M.tplEval_failOnError = function(template, env, opts)
   local ok,code = tpl(template, env, opts or {})
   if not ok then
-    logger.error("In the evaluation of a text template: " .. code)
-    fail()
+    logger.error("in the evaluation of a text template: " .. code)
+    error("Errors encountered; check the log for details", 2)
   end
   return code
 end
