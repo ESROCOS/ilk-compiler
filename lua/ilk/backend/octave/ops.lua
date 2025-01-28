@@ -54,10 +54,56 @@ local geometricJacobianColumn = function(program, op, joint, config)
 end
 
 
+local jointVelocityTwist = function(program, jointVelOp, jointVelocitySpec, joint, qd_argument, config)
+    local ids = {
+        qd  = qd_argument.name,
+        velocity = jointVelOp.arg,
+        index   = joint.coordinate,
+        spatialIndex = thisBackendMetaAPI.spatialVectorIndex[ joint.kind ],
+        funcs =  thisBackendMetaAPI.funcs,
+        init = thisBackendMetaAPI.matrixT(6,1),
+    }
+
+    local texttpl = nil
+    if jointVelocitySpec.polarity == -1 then
+        ids.H = program.poseValueExpression(jointVelocitySpec.ctransform)
+        texttpl =
+[[«velocity» = «init»;
+aux = «init»;
+aux[«spatialIndex»] = -«qd»[«index»];
+«funcs.ct_twist»( «H», aux, «velocity» );
+]]
+  else
+    texttpl =
+[[«velocity» = «init»;
+«velocity»[«spatialIndex»] = «qd»[«index»]; ]]
+  end
+  return tpleval(texttpl, ids)
+end
+
+
+local jointVelComposeSnippets = function(program, velocityComposeOp, env, config)
+    env.coordt    = thisBackendMetaAPI.funcs.ct_twist
+    env.twistInit = thisBackendMetaAPI.matrixT(6,1)
+
+    env.sptInd = thisBackendMetaAPI.spatialVectorIndex[ env.joint.kind ]
+    env. qdInd = env.joint.coordinate
+
+    return {
+        initializeVelocityVariable = tpleval("«res» = «twistInit»;", env),
+        subtractJointVelocity      = tpleval("«v2»[«sptInd»] -= «qd»[«qdInd»];", env),
+        twistCoordinateTransform   = tpleval("«coordt»( «H», «v2», «res» );", env),
+        addJointVelocity           = tpleval("«res»[«sptInd»] += «qd»[«qdInd»];", env)
+    }
+end
+
+
 local ret = {
     poseCompose = poseCompose,
     geometricJacobianInit = geometricJacobianInit,
     geometricJacobianColumn = geometricJacobianColumn,
+    jointVelocityTwist = jointVelocityTwist,
+    jointVelComposeSnippets = jointVelComposeSnippets,
 }
 
 

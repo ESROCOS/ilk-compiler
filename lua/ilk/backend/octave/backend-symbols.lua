@@ -42,13 +42,18 @@ local matrixT = function(r,c)
 end
 
 
-RET.coordsID = {
+local coordsID = {
   location   = {x="4",y="5",z="6"},
   orientation= {x="1",y="2",z="3"}
 }
-RET.spatialVectorIndex = {
-  [keys.jointType.prismatic] = RET.coordsID.location.z,
-  [keys.jointType.revolute]  = RET.coordsID.orientation.z
+local coordsSpan = {
+  location   = "4:6",
+  orientation= "1:3",
+}
+
+local spatialVectorIndex = {
+  [keys.jointType.prismatic] = coordsID.location.z,
+  [keys.jointType.revolute]  = coordsID.orientation.z
 }
 
 return {
@@ -58,4 +63,8 @@ return {
 
     ik_pos_dbg = "ik_pos_dbg",
     ik_pos_cfg = "ik_pos_cfg",
+
+    coordsID = coordsID,
+    coordsSpan = coordsSpan,
+    spatialVectorIndex = spatialVectorIndex,
 }
