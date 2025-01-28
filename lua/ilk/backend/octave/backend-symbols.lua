@@ -34,7 +34,7 @@ local funcs = {
     [keys.jointType.prismatic] = backend_namespace .. ".geometricJacobianColumn_prismatic",
     [keys.jointType.revolute]  = backend_namespace .. ".geometricJacobianColumn_revolute"
   },
-  ct_twist="ct_twist"
+  ct_twist = backend_namespace .. ".ctTwist"
 }
 
 local matrixT = function(r,c)
@@ -56,6 +56,10 @@ local spatialVectorIndex = {
   [keys.jointType.revolute]  = coordsID.orientation.z
 }
 
+local jointIndex = function(joint)
+    return joint.coordinate+1
+end
+
 return {
     jointTransformSetvalue = jointTransformSetvalue,
     matrixT = matrixT,
@@ -67,4 +71,5 @@ return {
     coordsID = coordsID,
     coordsSpan = coordsSpan,
     spatialVectorIndex = spatialVectorIndex,
+    jointIndex = jointIndex,
 }

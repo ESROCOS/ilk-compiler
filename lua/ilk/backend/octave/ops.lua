@@ -9,9 +9,9 @@ end
 
 local jacColTemplate = {
     [keys.jointType.revolute] = [[
-«J.jac»(:,«J.col + 1») = «backend.funcs.gJacCol[jtype]»(
-    poi_«J.jac»,
-    «jpose»(1:3,4),
+«J.jac»(:,«J.col + 1») = «backend.funcs.gJacCol[jtype]»(...
+    poi_«J.jac»,...
+    «jpose»(1:3,4),...
     «jpose»(1:3,3));
 ]],
   [keys.jointType.prismatic] = "«J.jac»(:,«J.col + 1») = «backend.funcs.gJacCol[jtype]»(«jpose»(1:3,3));"
@@ -58,7 +58,7 @@ local jointVelocityTwist = function(program, jointVelOp, jointVelocitySpec, join
     local ids = {
         qd  = qd_argument.name,
         velocity = jointVelOp.arg,
-        index   = joint.coordinate,
+        index   = thisBackendMetaAPI.jointIndex(joint),
         spatialIndex = thisBackendMetaAPI.spatialVectorIndex[ joint.kind ],
         funcs =  thisBackendMetaAPI.funcs,
         init = thisBackendMetaAPI.matrixT(6,1),
@@ -70,13 +70,13 @@ local jointVelocityTwist = function(program, jointVelOp, jointVelocitySpec, join
         texttpl =
 [[«velocity» = «init»;
 aux = «init»;
-aux[«spatialIndex»] = -«qd»[«index»];
+aux(«spatialIndex») = -«qd»(«index»);
 «funcs.ct_twist»( «H», aux, «velocity» );
 ]]
   else
     texttpl =
 [[«velocity» = «init»;
-«velocity»[«spatialIndex»] = «qd»[«index»]; ]]
+«velocity»(«spatialIndex») = «qd»(«index»);]]
   end
   return tpleval(texttpl, ids)
 end
@@ -87,13 +87,13 @@ local jointVelComposeSnippets = function(program, velocityComposeOp, env, config
     env.twistInit = thisBackendMetaAPI.matrixT(6,1)
 
     env.sptInd = thisBackendMetaAPI.spatialVectorIndex[ env.joint.kind ]
-    env. qdInd = env.joint.coordinate
+    env. qdInd = thisBackendMetaAPI.jointIndex(env.joint)
 
     return {
         initializeVelocityVariable = tpleval("«res» = «twistInit»;", env),
-        subtractJointVelocity      = tpleval("«v2»[«sptInd»] -= «qd»[«qdInd»];", env),
+        subtractJointVelocity      = tpleval("«v2»(«sptInd») = «v2»(«sptInd») - «qd»(«qdInd»);", env),
         twistCoordinateTransform   = tpleval("«coordt»( «H», «v2», «res» );", env),
-        addJointVelocity           = tpleval("«res»[«sptInd»] += «qd»[«qdInd»];", env)
+        addJointVelocity           = tpleval("«res»(«sptInd») = «res»(«sptInd») + «qd»(«qdInd»);", env)
     }
 end
 
