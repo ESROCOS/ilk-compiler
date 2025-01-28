@@ -1,6 +1,6 @@
-# Copyright © 2024 Marco Frigerio
-# Distributed under the 'BSD-2-Clause' license.
-# See the LICENSE file for details.
+% Copyright © 2024 Marco Frigerio
+% Distributed under the 'BSD-2-Clause' license.
+% See the LICENSE file for details.
 
 classdef AxisAngle
     properties
@@ -13,7 +13,7 @@ classdef AxisAngle
                 obj.axis = [1.0; 0.0; 0.0];
                 obj.angle = 0.0;
             else
-                obj.axis = (varargin{1} / norm(varargin{1}))(:); # (:) to force a column vector
+                obj.axis = (varargin{1} / norm(varargin{1}))(:); % (:) to force a column vector
                 obj.angle = varargin{2};
             end
         end

@@ -1,6 +1,6 @@
-# Copyright © 2024 Marco Frigerio
-# Distributed under the 'BSD-2-Clause' license.
-# See the LICENSE file for details.
+% Copyright © 2024 Marco Frigerio
+% Distributed under the 'BSD-2-Clause' license.
+% See the LICENSE file for details.
 
 function mx = rot_z__b_x_a(angle)
     mx = eye(4);
