@@ -13,7 +13,8 @@ classdef AxisAngle
                 obj.axis = [1.0; 0.0; 0.0];
                 obj.angle = 0.0;
             else
-                obj.axis = (varargin{1} / norm(varargin{1}))(:); % (:) to force a column vector
+                axis = (varargin{1} / norm(varargin{1}));
+                obj.axis = axis(:); % (:) to force a column vector
                 obj.angle = varargin{2};
             end
         end

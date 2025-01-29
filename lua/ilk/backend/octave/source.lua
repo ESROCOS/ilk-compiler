@@ -153,7 +153,7 @@ ${heading}
         ik_twist(«backend.funcs.linearCoords»()) = ee_err_pos / «cfgVar».dt;
 @end
         qd = «backend.funcs.lsSolve»(jacobian, ik_twist);
-        «q_ik» += qd * «cfgVar».dt;
+        «q_ik» = «q_ik» + qd * «cfgVar».dt;
 @if compute_pos then
         ep = norm(ee_err_pos);
 @end
@@ -161,7 +161,7 @@ ${heading}
         eo = abs(ee_err_or.angle);
 @end
         «dbg».iter_count = «dbg».iter_count + 1;
-    endwhile
+    end
 
     «dbg».actual_pos = pose(1:3,4);
     «dbg».actual_or  = pose(1:3,1:3);
