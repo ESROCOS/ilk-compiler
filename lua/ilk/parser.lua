@@ -97,7 +97,10 @@ end
 
 
 
-
+--- Parse an ILK source (i.e. an imperative solver model) into the
+-- internal representation of the same solver
+--
+-- TODO document the internal representation, i.e. the fields of the table
 M.parse = function(ilk_program)
   local ret = {}
   ret.meta = get_metainfo(ilk_program)

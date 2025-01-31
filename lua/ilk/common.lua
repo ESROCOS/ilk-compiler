@@ -34,7 +34,11 @@ local velocityTypes = { location   = M.metatypes.linVel3d,
                         orientation= M.metatypes.angVel3d,
                         pose       = M.metatypes.twist }
 
-
+--- Register in the program signature the common input/output arguments
+--
+-- These are the arguments that are needed by many solvers, like the
+-- model constants and the joint status vector.
+--
 local function metaArgsSetterCommon(program, signature)
   signature.inputs  = {}
   signature.outputs = {}
@@ -129,6 +133,10 @@ local function argNames(args)
          end
 end
 
+--- Create and initialize the given solver's signature
+--
+-- The signature is a container of meta-data about the solver, like its
+-- name and its arguments
 M.metaSignature = function(program)
   local sign = {}
   sign.defaultName = program.meta.solver_id

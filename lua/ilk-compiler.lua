@@ -2,7 +2,8 @@
 
 ilk_compiler_version = "0.4.1"
 
-local ilk_parser = require('ilk.parser')
+local parser = require("ilk.parser")
+local common = require("ilk.common")
 local sep = package.config:sub(1, 1) -- the path separator for the current OS
 
 local logger = require('log').new(
@@ -36,17 +37,27 @@ local function getBackend(backendName, config)
 end
 
 
-local common = require("ilk.common")
--- Check the given ILK models and transforms each one into the internal representation.
--- This function also creates the 'context' object, which contains common data
--- for the current session, like the robot name and its numerical constants.
 
--- @return the context and the list of solver-models, in the internal format
+--- Check the given ILK models and transform each one into the internal
+-- representation
+--
+-- This function also creates the 'context' object, which contains
+-- common data for the current session, like the robot name and its
+-- numerical constants.
+--
+-- @param ilkSources the array with the ILK sources
+-- @param model_values the constant poses referenced by the solvers
+-- @return the context and the list of the parsed solver-models, i.e.,
+--   the solver-models in the internal format.
+--
+-- For the internal format, that is the structure of the table that
+-- represents a solver, see parser.lua:parse.
+-- TODO this function adds the signature field to that table
 --
 local parseInputs = function(ilkSources, model_values)
   local programs = {}
   for i,source in ipairs(ilkSources) do
-    programs[i] = ilk_parser.parse(source)
+    programs[i] = parser.parse(source)
     if programs[i].model_poses ~= nil then
       for k,v in pairs(programs[i].model_poses.constant) do
         if model_values.poses[k] == nil then
@@ -62,12 +73,12 @@ local parseInputs = function(ilkSources, model_values)
 
   --- The context data associated with a run of the ilk-compiler
   -- @table context
-  -- @field robotName name of the robot model as appearing in the first ILK
-  --   source program
-  -- @field jointSpaceSize the size of the robot's joint space, also determined
-  --   from the metadata of the first ILK source program
-  -- @field modelValues the robot model constants, as given to the `parseInputs`
-  --   function
+  -- @field robotName name of the robot model as appearing in the first
+  --   ILK source program
+  -- @field jointSpaceSize the size of the robot's joint space, also
+  --   determined from the metadata of the first ILK source program
+  -- @field modelValues the robot model constants, as given to the
+  --   `parseInputs` function
   -- @field programs the list of parsed programs, one for each ILK source program
   local context = {
       robotName   = programs[1].meta.robot_name,
