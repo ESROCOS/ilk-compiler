@@ -36,18 +36,19 @@ local shared_templates = {
 local source_model_constants = function(context, config)
     local env = {
         heading = heading,
-        struct = "ModelConstants",
+        fname = config.model_constants_f_name,
         poses  = function() return common.alphabPairs(context.outer.modelValues.poses) end,
     }
     local res = tpl(
 [[
 ${heading}
 
-global «struct»;
-«struct» = struct();
+function mc = «fname»()
+
+mc = struct();
 
 @for id, val in poses() do
-«struct».«id» = [ [«val.r[1]» «val.r[2]» «val.r[3]» «val.p[1]»];
+mc.«id» = [ [«val.r[1]» «val.r[2]» «val.r[3]» «val.p[1]»];
                  [«val.r[4]» «val.r[5]» «val.r[6]» «val.p[2]»];
                  [«val.r[7]» «val.r[8]» «val.r[9]» «val.p[3]»];
                  [0 0 0 1] ];

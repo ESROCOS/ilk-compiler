@@ -14,6 +14,7 @@ local lfs = require "lfs"
 
 
 local function getBackend(backendName, config)
+    -- TODO backend-specific config should not be hardcoded here
   local genConfig = {
     path = config.path,
     sourceFileName = config.robotName,
@@ -31,6 +32,7 @@ local function getBackend(backendName, config)
       genConfig.codeTweaks.importBackendAs = "backend"
   elseif backendName == 'octave' then
       backend = require('ilk.backend.octave')
+      genConfig.model_constants_f_name = "model_constants"
   else
     error("Unknown backend '"..backendName.."'")
   end
@@ -178,7 +180,8 @@ end
 
 
 -- Get the backend module and its specific configuration
---
+-- TODO: backend-specific config should also come from the command line
+--  or from a config file
 local backend, config = getBackend(args.backend, {path=args.OUTDIR, robotName=context.robotName} )
 context, programs = backend.augmentContext(context, programs)
 local opsHandlers, generateFiles = backend.getGenerators(context, config.codeTweaks )

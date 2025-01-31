@@ -12,7 +12,7 @@ local function generator(context, programs, config)
     local fd = nil
     
     -- The file with the model constants
-    fd = io.open(opath .. "/model_constants.m", "w") or io.stdout
+    fd = io.open(opath .. "/"  .. config.model_constants_f_name .. ".m", "w") or io.stdout
     fd:write( sourcegen.model_constants(context, config) )
     fd:close()
 
