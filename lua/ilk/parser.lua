@@ -25,7 +25,10 @@ local keys = {
       kind = {velocity = 'vel', position = 'pos' },
       cfgSpace = {lin='linear', ang='angular', pose='pose'},
       fkSolver = "fk"
-    }
+    },
+    special_ids = {
+        identity_matrix = "_identity_",
+    },
 }
 
 local M = {}
@@ -173,8 +176,9 @@ M.keys = {
       jacobians = 'jacobian'
     }
   }
-
 }
 
+-- for the special identifiers, we use the same as the input models
+M.special_IDs = keys.special_ids
 
 return M
