@@ -4,39 +4,31 @@ This is the readme file of the ILK-Compiler tool.
 
 ## Prerequisites
 
-A valid `Lua` interpreter (`Lua5.2` -- suggested, `Lua5.3` or `Luajit`),
-and the `luarocks` tool are required. Please install them from your package
-manager (or from sources). For example, you could follow this procedure
-(tested on Ubuntu 16.04 - requires `wget`, `unzip`, `tar`, `make`, `git`):
+A `Lua` interpreter and [`luarocks`](https://luarocks.org/) are required.
+Please install them from your package manager (or from sources).
 
+**NOTE**: getting luarocks using `apt-get install` may result in inconsistencies
+between Lua and Luarocks, on Ubuntu.
 
-1. Install Lua 5.2 and liblua5.2-dev (**NOTE**: getting luarocks using
-   `apt-get install` results in an incompatible installation on Ubuntu 16.04 as
-   of 14 Jun 2018)
+For example:
 
-     ```sudo apt-get install lua5.2 liblua5.2-dev```
+```
+sudo apt-get install lua5.2 liblua5.2-dev
+wget http://luarocks.github.io/luarocks/releases/luarocks-2.4.4.tar.gz
+tar zxvf luarocks-2.4.4.tar.gz
+cd luarocks-2.4.4/
+./configure --lua-version=5.2
+make build
+sudo make install
+cd ..
+```
 
-2. Download and install luarocks
-    - download from `https://luarocks.org/` or using `wget`
-    - unpack the source archive
-    - compile and install
+Then, install Lua dependencies using luarocks:
 
-        ```
-        wget http://luarocks.github.io/luarocks/releases/luarocks-2.4.4.tar.gz
-        tar zxvf luarocks-2.4.4.tar.gz
-        cd luarocks-2.4.4/
-        ./configure --lua-version=5.2
-        make build
-        sudo make install
-        cd ..
-        ```
-
-3. Install Lua dependencies using luarocks:
-
-    ```
-    cd etc/
-    luarocks install --local --only-deps ilkcompiler-0.4.0-1.rockspec
-    ```
+```
+cd etc/
+luarocks install --local --only-deps ilkcompiler-<version>.rockspec
+```
 
 
 ## Running the tool
