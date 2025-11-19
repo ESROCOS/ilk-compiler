@@ -102,7 +102,8 @@ end
 local lineCommentMatch = {
   eigen = "[//-/*-*/-*]",
   numpy = "#",
-  julia = "#"
+  julia = "#",
+  octave = "%%",
 }
 
 
