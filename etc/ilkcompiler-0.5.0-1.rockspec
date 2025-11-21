@@ -1,5 +1,5 @@
 package = "ilkcompiler"
-version = "0.4.1-1"
+version = "0.5.0-1"
 source = {
   url    = "git@github.com:ESROCOS/ilk-compiler.git",
   branch = "master"
@@ -19,7 +19,7 @@ dependencies = {
   "lyaml",
   "lua_cliargs",
   "lua-log",
-  "template-text >= 0.1.1",
+  "template-text >= 0.2.0",
 }
 build = {
   type = "builtin",
