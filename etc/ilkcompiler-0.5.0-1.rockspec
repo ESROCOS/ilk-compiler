@@ -16,7 +16,6 @@ description = {
 dependencies = {
   "lua > 5.1",
   "luafilesystem",
-  "lyaml",
   "lua_cliargs",
   "lua-log",
   "template-text >= 0.2.0",

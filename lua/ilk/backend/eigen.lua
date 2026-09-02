@@ -64,11 +64,6 @@ end
 local function getGenerator(opsHandlers, codeTweakConfig)
 
 local function generator(context, programs, config)
-  if config.dumpMetaData then
-    local misc = require("ilk.backend.eigen.gen-metadata")
-    misc.gen_metadata(context, config.path)
-  end
-
   local testPath = config.path.."/test"
   lfs.mkdir(testPath)
   local testFiles = {}

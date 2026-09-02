@@ -25,7 +25,6 @@ local function getBackend(backendName, config)
   if backendName == 'eigen' then
       backend = require('ilk.backend.eigen')
       genConfig.headerFileName = config.robotName
-      genConfig.dumpMetaData = true
   elseif backendName == 'julia' then
       backend = require('ilk.backend.julia')
   elseif backendName == 'numpy' then
